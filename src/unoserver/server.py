@@ -9,8 +9,11 @@ def server(interface="127.0.0.1", port="2002"):
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
 
-        connection = "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext" % (interface, port)
-        tmp_uri = 'file://' + request.pathname2url(tmpuserdir)
+        connection = (
+            "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+            % (interface, port)
+        )
+        tmp_uri = "file://" + request.pathname2url(tmpuserdir)
 
         cmd = [
             "libreoffice",
@@ -22,7 +25,7 @@ def server(interface="127.0.0.1", port="2002"):
             "--nofirststartwizard",
             "--norestore",
             f"-env:UserInstallation={tmp_uri}",
-            f"--accept={connection}"
+            f"--accept={connection}",
         ]
 
         print(cmd)
@@ -31,7 +34,9 @@ def server(interface="127.0.0.1", port="2002"):
 
 def main():
     parser = argparse.ArgumentParser("unoserver")
-    parser.add_argument("--interface", default="127.0.0.1", help="The interface used by the server")
+    parser.add_argument(
+        "--interface", default="127.0.0.1", help="The interface used by the server"
+    )
     parser.add_argument("--port", default="2002", help="The port used by the server")
     args = parser.parse_args()
 
