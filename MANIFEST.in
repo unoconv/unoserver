@@ -1,0 +1,4 @@
+include *.md
+include *.yaml
+include LICENSE
+recursive-include src *.py
