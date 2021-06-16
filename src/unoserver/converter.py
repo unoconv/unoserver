@@ -105,22 +105,26 @@ class UnoConverter:
             import_path, "_default", 0, (PropertyValue(Name="ReadOnly", Value=True),)
         )
 
-        # Figure out document type:
-        import_type = self.get_doc_type(document)
-        filtername = self.find_filter(import_type, export_type)
+        try:
+            # Figure out document type:
+            import_type = self.get_doc_type(document)
+            filtername = self.find_filter(import_type, export_type)
 
-        print(f"Exporting to {outfile}")
-        print(f"Using {filtername} export filter")
+            print(f"Exporting to {outfile}")
+            print(f"Using {filtername} export filter")
 
-        args = (
-            PropertyValue(Name="FilterName", Value=filtername),
-            PropertyValue(Name="Overwrite", Value=True),
-        )
-        document.storeToURL(export_path, args)
+            args = (
+                PropertyValue(Name="FilterName", Value=filtername),
+                PropertyValue(Name="Overwrite", Value=True),
+            )
+            document.storeToURL(export_path, args)
+
+        finally:
+            document.close(True)
 
 
 def main():
-    parser = argparse.ArgumentParser("unoserver")
+    parser = argparse.ArgumentParser("unoconverter")
     parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )

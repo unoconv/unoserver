@@ -15,6 +15,8 @@ def server(interface="127.0.0.1", port="2002"):
         )
         tmp_uri = "file://" + request.pathname2url(tmpuserdir)
 
+        # I think only --headless and --norestore are needed for
+        # command line usage, but let's add everything to be safe.
         cmd = [
             "libreoffice",
             "--headless",
