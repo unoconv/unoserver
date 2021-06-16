@@ -1,5 +1,8 @@
-# Changes
+0.0.2 (unreleased)
+------------------
 
-## 0.0.1
+- Nothing changed yet.
 
-- First release
+
+0.0.1 (2021-06-16)
+------------------
