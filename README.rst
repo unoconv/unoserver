@@ -1,8 +1,10 @@
-# unoserver
+unoserver
+=========
 
 Using LibreOffice as a server for converting documents.
 
-## Overview
+Overview
+--------
 
 Using LibreOffice to convert documents is easy, you can use a command like this to
 convert a file to PDF, for example:
@@ -23,7 +25,8 @@ specified IP interface and port, and `unoconverter` which will connect to a list
 to convert a document.
 
 
-## Installation
+Installation
+------------
 
 NB! Windows and Mac support is as of yet untested.
 
@@ -43,16 +46,19 @@ On Windows the paths to the LibreOffice Python executable are usually in locatio
 `/Applications/LibreOffice.app/Contents/python`.
 
 
-## Usage
+Usage
+-----
 
-### Unoserver
+Unoserver
+~~~~~~~~~
 
 `unoserver [-h] [--interface INTERFACE] [--port PORT]`
 
   * `--interface`: The interface used by the server, defaults to "localhost"
   * `--port`: The port used by the server, defaults to "2002"
 
-### Unoconvert
+Unoconvert
+~~~~~~~~~~
 
 `unoconverter [-h] [--interface INTERFACE] [--port PORT] --infile INFILE --outfile OUTFILE`
 
@@ -62,12 +68,14 @@ On Windows the paths to the LibreOffice Python executable are usually in locatio
   * `--outfile`: The path to the converted file
 
 
-## Comparison with `unoconv`
+Comparison with `unoconv`
+-------------------------
 
 Unoserver started as a rewrite, and hopefully a replacement to `unoconv`, a module with support
 for using LibreOffice as a listener to convert documents.
 
-### Differences for the user
+Differences for the user
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Easier install for system versions of LibreOffice. On Linux, the apckaged versions of LibreOffice
   typically uses the system Python, making it easy to install `unoserver` with a simple
@@ -88,7 +96,8 @@ for using LibreOffice as a listener to convert documents.
 * Only LibreOffice is officially supported. Other variations are untested.
 
 
-### Differences for the maintainer
+Differences for the maintainer
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * It's a complete and clean rewrite, supporting only Python 3, with easier to understand and
   therefore easier to maintain code, hopefully meaning more people can contribute.
