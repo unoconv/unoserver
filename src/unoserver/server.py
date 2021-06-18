@@ -4,34 +4,49 @@ import tempfile
 from urllib import request
 
 
-def server(interface="127.0.0.1", port="2002"):
-    print("Starting unoserver.")
+class UnoServer:
+    def __init__(self, interface="127.0.0.1", port="2002"):
+        self.interface = interface
+        self.port = port
 
-    with tempfile.TemporaryDirectory() as tmpuserdir:
+    def start(self, daemon=False):
+        print("Starting unoserver.")
 
-        connection = (
-            "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-            % (interface, port)
-        )
-        tmp_uri = "file://" + request.pathname2url(tmpuserdir)
+        with tempfile.TemporaryDirectory() as tmpuserdir:
 
-        # I think only --headless and --norestore are needed for
-        # command line usage, but let's add everything to be safe.
-        cmd = [
-            "libreoffice",
-            "--headless",
-            "--invisible",
-            "--nocrashreport",
-            "--nodefault",
-            "--nologo",
-            "--nofirststartwizard",
-            "--norestore",
-            f"-env:UserInstallation={tmp_uri}",
-            f"--accept={connection}",
-        ]
+            connection = (
+                "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+                % (self.interface, self.port)
+            )
+            tmp_uri = "file://" + request.pathname2url(tmpuserdir)
 
-        print(cmd)
-        subprocess.call(cmd)
+            # I think only --headless and --norestore are needed for
+            # command line usage, but let's add everything to be safe.
+            cmd = [
+                "libreoffice",
+                "--headless",
+                "--invisible",
+                "--nocrashreport",
+                "--nodefault",
+                "--nologo",
+                "--nofirststartwizard",
+                "--norestore",
+                f"-env:UserInstallation={tmp_uri}",
+                f"--accept={connection}",
+            ]
+
+            print(cmd)
+            try:
+                process = subprocess.Popen(cmd)
+                if not daemon:
+                    process.wait()
+                else:
+                    return process
+            except Exception:
+                import pdb
+
+                pdb.set_trace()
+                raise
 
 
 def main():
@@ -42,7 +57,8 @@ def main():
     parser.add_argument("--port", default="2002", help="The port used by the server")
     args = parser.parse_args()
 
-    server(args.interface, args.port)
+    server = UnoServer(args.interface, args.port)
+    server.start()
 
 
 if __name__ == "__main__":

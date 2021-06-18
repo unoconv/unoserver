@@ -1,6 +1,15 @@
 Development Guide
 =================
 
+Requirements
+------------
+
+In addition to Python 3 and normal development tools, ie, the `build-essentials` package on Ubuntu,
+XCode on OS X, etc, you also need to install pre-commit.
+
+
+
+
 Installing for development
 --------------------------
 
@@ -13,10 +22,17 @@ for development, simply clone the repository, and then make the development envi
     $ ve/bin/pip install -e .[devenv]
 
 
+Code quality
+------------
+
+
+
+
 Running tests
 -------------
 
     $ make test
+
 
 Releasing
 ---------
