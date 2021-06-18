@@ -15,20 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
-      matrix:
-        python-version: [3.7, 3.8, 3.9]
-
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        sudo apt-get install libreoffice
         python -m pip install --upgrade pip
         python -m pip install -e .[devenv]
+        sudo apt-get install libreoffice
     - name: Check style with black
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -41,4 +34,4 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        pytest tests/
+        PYTHONPATH=/ pytest tests/
