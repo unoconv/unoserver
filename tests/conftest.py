@@ -5,7 +5,7 @@ from unoserver import server
 
 
 @pytest.fixture(scope="session")
-def unoserver():
+def server_fixture():
     srvr = server.UnoServer()
     process = srvr.start(daemon=True)
     # Give libreoffice a chance to start

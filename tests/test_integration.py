@@ -7,7 +7,7 @@ from unoserver import converter
 TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents")
 
 
-def test_conversion(unoserver):
+def test_conversion(server_fixture):
     conv = converter.UnoConverter()
     infile = os.path.join(TEST_DOCS, "simple.odt")
 
