@@ -1,9 +1,14 @@
 import argparse
+import logging
 import os
 import sys
 import uno
 
 from com.sun.star.beans import PropertyValue
+
+logging.basicConfig()
+logger = logging.getLogger("unoserver")
+logger.setLevel(logging.DEBUG)
 
 SFX_FILTER_IMPORT = 1
 SFX_FILTER_EXPORT = 2
@@ -24,7 +29,7 @@ def prop2dict(properties):
 
 class UnoConverter:
     def __init__(self, interface="127.0.0.1", port="2002"):
-        print("Starting unoconverter.")
+        logger.info("Starting unoconverter.")
 
         self.local_context = uno.getComponentContext()
         self.resolver = self.local_context.ServiceManager.createInstanceWithContext(
@@ -72,14 +77,13 @@ class UnoConverter:
             return candidates[0]["Name"]
 
         if len(candidates) == 0:
-            print(
+            logger.error(
                 "Unknown file extension {ext}, please specify type with --export-type"
             )
             sys.exit(1)
 
-        print("Ambigous file extension, please specify type with --export-type")
-        print("Examples:")
-        [print(e.Type) for e in candidates]
+        logger.error("Ambigous file extension, please specify type with --export-type")
+        logger.error("\n".join(["Examples:"] + [e.Type for e in candidates]))
         sys.exit(1)
 
     def convert(self, infile, outfile, export_filter=None):
@@ -90,7 +94,7 @@ class UnoConverter:
         if not export_filter:
             export_type = self.types.queryTypeByURL(export_path)
             if not export_type:
-                print(
+                logger.error(
                     "Unknown export file type, please specify type with --export-type"
                 )
 
@@ -100,7 +104,7 @@ class UnoConverter:
         ### Load the document
         import_path = uno.systemPathToFileUrl(infile)
         # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-        print(f"Opening {infile}")
+        logger.info(f"Opening {infile}")
         document = self.desktop.loadComponentFromURL(
             import_path, "_default", 0, (PropertyValue(Name="ReadOnly", Value=True),)
         )
@@ -110,8 +114,8 @@ class UnoConverter:
             import_type = self.get_doc_type(document)
             filtername = self.find_filter(import_type, export_type)
 
-            print(f"Exporting to {outfile}")
-            print(f"Using {filtername} export filter")
+            logger.info(f"Exporting to {outfile}")
+            logger.info(f"Using {filtername} export filter")
 
             args = (
                 PropertyValue(Name="FilterName", Value=filtername),

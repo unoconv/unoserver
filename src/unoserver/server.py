@@ -1,7 +1,12 @@
 import argparse
+import logging
 import subprocess
 import tempfile
 from urllib import request
+
+logging.basicConfig()
+logger = logging.getLogger("unoserver")
+logger.setLevel(logging.INFO)
 
 
 class UnoServer:
@@ -10,7 +15,7 @@ class UnoServer:
         self.port = port
 
     def start(self, daemon=False):
-        print("Starting unoserver.")
+        logger.info("Starting unoserver.")
 
         with tempfile.TemporaryDirectory() as tmpuserdir:
 
@@ -18,7 +23,9 @@ class UnoServer:
                 "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
                 % (self.interface, self.port)
             )
-            tmp_uri = "file://" + request.pathname2url(tmpuserdir)
+
+            # Store this as an attribute, it helps testing
+            self.tmp_uri = "file://" + request.pathname2url(tmpuserdir)
 
             # I think only --headless and --norestore are needed for
             # command line usage, but let's add everything to be safe.
@@ -31,22 +38,16 @@ class UnoServer:
                 "--nologo",
                 "--nofirststartwizard",
                 "--norestore",
-                f"-env:UserInstallation={tmp_uri}",
+                f"-env:UserInstallation={self.tmp_uri}",
                 f"--accept={connection}",
             ]
 
-            print(cmd)
-            try:
-                process = subprocess.Popen(cmd)
-                if not daemon:
-                    process.wait()
-                else:
-                    return process
-            except Exception:
-                import pdb
-
-                pdb.set_trace()
-                raise
+            logger.info("Command: " + " ".join(cmd))
+            process = subprocess.Popen(cmd)
+            if not daemon:
+                process.wait()
+            else:
+                return process
 
 
 def main():
