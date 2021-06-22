@@ -1,10 +1,5 @@
 """Unoserver unit tests"""
 import os
-import pytest
-import subprocess
-import sys
-import tempfile
-import time
 
 from unittest import mock
 from unoserver import server
@@ -13,7 +8,7 @@ TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents
 
 
 @mock.patch("subprocess.Popen")
-def test_server_start(popen_mock):
+def test_server_params(popen_mock):
     srv = server.UnoServer()
     srv.start()
     popen_mock.assert_called_with(

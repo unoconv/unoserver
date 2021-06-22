@@ -1,6 +1,5 @@
 import argparse
 import logging
-import os
 import sys
 import uno
 
@@ -88,7 +87,7 @@ class UnoConverter:
 
     def convert(self, infile, outfile, export_filter=None):
 
-        ### Prepare some things
+        # Prepare some things
 
         export_path = uno.systemPathToFileUrl(outfile)
         if not export_filter:
@@ -101,7 +100,7 @@ class UnoConverter:
         # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
         # exceptions are completely useless!
 
-        ### Load the document
+        # Load the document
         import_path = uno.systemPathToFileUrl(infile)
         # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
         logger.info(f"Opening {infile}")
