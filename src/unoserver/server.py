@@ -56,11 +56,10 @@ def main():
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
+    parser.add_argument("--daemon", action="store_true", help="Deamonize the server")
     args = parser.parse_args()
 
     server = UnoServer(args.interface, args.port)
-    server.start()
-
-
-if __name__ == "__main__":
-    main()
+    # If it's daemonized, this returns the process.
+    # Otherwise it returns None after the process exites.
+    return server.start(daemon=args.daemon)

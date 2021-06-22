@@ -142,7 +142,3 @@ def main():
 
     converter = UnoConverter(args.interface, args.port)
     converter.convert(args.infile, args.outfile)
-
-
-if __name__ == "__main__":
-    main()

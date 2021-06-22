@@ -2,6 +2,7 @@
 
 import os
 import pytest
+import sys
 import tempfile
 import time
 
@@ -44,8 +45,8 @@ def test_csv_conversion(server_fixture):
 def test_multiple_servers(server_fixture):
     # The server fixture should already have started a server.
     # Make sure we can start a second one.
-    srv = server.UnoServer()
-    process = srv.start(daemon=True)
+    sys.argv = ["unoserver", "--daemon"]
+    process = server.main()
     try:
         # Wait for it to start
         time.sleep(2)
@@ -56,5 +57,5 @@ def test_multiple_servers(server_fixture):
         process.terminate()
         # Wait for it to terminate
         process.wait()
-        # And verify that it was killed, which is code 255
+        # And verify that it was killed
         assert process.returncode == 255
