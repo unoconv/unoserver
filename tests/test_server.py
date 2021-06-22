@@ -1,3 +1,4 @@
+"""Unoserver unit tests"""
 import os
 import pytest
 import subprocess
