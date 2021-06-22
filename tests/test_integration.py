@@ -6,7 +6,6 @@ import tempfile
 import time
 
 from unoserver import converter, server
-from . import conftest
 
 TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents")
 
