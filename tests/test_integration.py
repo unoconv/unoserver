@@ -14,12 +14,13 @@ TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents
 
 @pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
 def test_pdf_conversion(server_fixture, filename):
-    conv = converter.UnoConverter()
     infile = os.path.join(TEST_DOCS, filename)
 
     with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
         # Let Libreoffice write to the file and close it.
-        conv.convert(infile, outfile.name)
+        sys.argv = ["unoconverter", "--infile", infile, "--outfile", outfile.name]
+        converter.main()
+
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
         with open(outfile.name, "rb") as testfile:
