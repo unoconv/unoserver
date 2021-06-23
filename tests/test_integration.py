@@ -8,6 +8,7 @@ import time
 
 from unoserver import converter, server
 
+
 TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents")
 
 
@@ -59,3 +60,13 @@ def test_multiple_servers(server_fixture):
         process.wait()
         # And verify that it was killed
         assert process.returncode == 255
+
+
+def test_unknown_outfile_type(server_fixture):
+    conv = converter.UnoConverter()
+    infile = os.path.join(TEST_DOCS, "simple.odt")
+
+    with tempfile.NamedTemporaryFile(suffix=".bog") as outfile:
+        # Type detection should fail, as it's not a .doc file:
+        with pytest.raises(SystemExit):
+            conv.convert(infile, outfile.name)

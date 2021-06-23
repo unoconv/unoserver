@@ -26,6 +26,20 @@ def prop2dict(properties):
     return {p.Name: p.Value for p in properties}
 
 
+def get_doc_type(doc):
+    for t in DOC_TYPES:
+        if doc.supportsService(t):
+            return t
+
+    # LibreOffice opened it, but it's not one of the known document types.
+    # This really should only happen if a future version of LibreOffice starts
+    # adding document types, which seems unlikely.
+    raise RuntimeError(
+        "The input document is of an unknown document type. This is probably a bug.\n"
+        "Please create an issue at https://github.com/unoconv/unoserver ."
+    )
+
+
 class UnoConverter:
     def __init__(self, interface="127.0.0.1", port="2002"):
         logger.info("Starting unoconverter.")
@@ -47,12 +61,6 @@ class UnoConverter:
         self.types = self.service.createInstanceWithContext(
             "com.sun.star.document.TypeDetection", self.context
         )
-
-    def get_doc_type(self, doc):
-        for t in DOC_TYPES:
-            if doc.supportsService(t):
-                return t
-        return ""
 
     def find_filter(self, import_type, export_type):
         # List export filters. You can only search on module, iflags and eflags,
@@ -110,7 +118,7 @@ class UnoConverter:
 
         try:
             # Figure out document type:
-            import_type = self.get_doc_type(document)
+            import_type = get_doc_type(document)
             filtername = self.find_filter(import_type, export_type)
 
             logger.info(f"Exporting to {outfile}")
