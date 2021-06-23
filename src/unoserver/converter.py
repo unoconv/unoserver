@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import sys
 import uno
 
@@ -55,21 +56,20 @@ class UnoConverter:
         self.desktop = self.service.createInstanceWithContext(
             "com.sun.star.frame.Desktop", self.context
         )
-        self.filters = self.service.createInstanceWithContext(
+        self.filter_service = self.service.createInstanceWithContext(
             "com.sun.star.document.FilterFactory", self.context
         )
-        self.types = self.service.createInstanceWithContext(
+        self.type_service = self.service.createInstanceWithContext(
             "com.sun.star.document.TypeDetection", self.context
         )
 
     def find_filter(self, import_type, export_type):
         # List export filters. You can only search on module, iflags and eflags,
         # so the import and export types we have to test in a loop
-        export_filters = self.filters.createSubSetEnumerationByQuery(
+        export_filters = self.filter_service.createSubSetEnumerationByQuery(
             "getSortedFilterList():iflags=2"
         )
 
-        candidates = []
         while export_filters.hasMoreElements():
             # Filter DocumentService here
             export_filter = prop2dict(export_filters.nextElement())
@@ -78,32 +78,23 @@ class UnoConverter:
             if export_filter["Type"] != export_type:
                 continue
 
-            candidates.append(export_filter)
+            # There is only one possible filter per import and export type,
+            # so the first one we find is correct
+            return export_filter["Name"]
 
-        if len(candidates) == 1:
-            return candidates[0]["Name"]
-
-        if len(candidates) == 0:
-            logger.error(
-                "Unknown file extension {ext}, please specify type with --export-type"
-            )
-            sys.exit(1)
-
-        logger.error("Ambigous file extension, please specify type with --export-type")
-        logger.error("\n".join(["Examples:"] + [e.Type for e in candidates]))
+        # No filter found
+        logger.error("Unknown file extension {ext}´")
         sys.exit(1)
 
-    def convert(self, infile, outfile, export_filter=None):
+    def convert(self, infile, outfile):
 
         # Prepare some things
-
         export_path = uno.systemPathToFileUrl(outfile)
-        if not export_filter:
-            export_type = self.types.queryTypeByURL(export_path)
-            if not export_type:
-                logger.error(
-                    "Unknown export file type, please specify type with --export-type"
-                )
+        export_type = self.type_service.queryTypeByURL(export_path)
+        if not export_type:
+            logger.error(
+                f"Unknown export file type, unkown extension {os.path.splitext(outfile)}"
+            )
 
         # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
         # exceptions are completely useless!
