@@ -1,4 +1,4 @@
 include *.rst
-include *.yaml
 include LICENSE
 recursive-include src *.py
+recursive-include tests *.py *.odt *.xlsx
