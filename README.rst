@@ -82,6 +82,10 @@ Development and Testing
 
     $ ve/bin/pytest tests
 
+4. Run `flake8` linting:
+
+    $ ve/bin/flake8 src tests
+
 
 Comparison with `unoconv`
 -------------------------
