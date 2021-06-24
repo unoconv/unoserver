@@ -1,6 +1,7 @@
 """Unoconverter unit tests"""
 import os
 import pytest
+import sys
 import uno
 
 from unoserver import converter
@@ -14,3 +15,29 @@ def test_get_doc_type():
     # Pass in the service manager, it doesn't support any known document type
     with pytest.raises(RuntimeError):
         converter.get_doc_type(smgr)
+
+
+old_import = __builtins__["__import__"]
+
+
+def new_import(name, *optargs, **kwargs):
+    if name == "uno":
+        raise ImportError
+    else:
+        return old_import(name, *optargs, **kwargs)
+
+
+def test_no_uno(monkeypatch):
+    # Patch the import. Mock doesn't work here, because it refuses to
+    # deal with __builtins__ as a module, so We can't use mock.patch().
+    # Pytests monkeypatch will unmonkeypatch at the end of the test.
+    monkeypatch.setitem(__builtins__, "__import__", new_import)
+    del sys.modules["uno"]
+    del sys.modules["unoserver"]
+    del sys.modules["unoserver.converter"]
+
+    # This should now raise an import error
+    with pytest.raises(ImportError) as e:
+        from unoserver import converter  # noqa: F401
+
+    assert "This package must be installed with a Python" in str(e.value)
