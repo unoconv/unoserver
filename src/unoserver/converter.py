@@ -49,7 +49,6 @@ def get_doc_type(doc):
 
 
 class UnoConverter:
-
     def __init__(self, interface="127.0.0.1", port="2002"):
         logger.info("Starting unoconverter.")
 
