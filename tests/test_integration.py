@@ -51,7 +51,7 @@ def test_multiple_servers(server_fixture):
     process = server.main()
     try:
         # Wait for it to start
-        time.sleep(2)
+        time.sleep(5)
         # Make sure the process is still running, meaning return_code is None
         assert process.returncode is None
     finally:
