@@ -1,7 +1,10 @@
 1.0b3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+1.0b3 (unreleased)
+------------------
+
+- Make sure `interface` and `port` options are honored.
 
 
 1.0b2 (2021-06-24)
