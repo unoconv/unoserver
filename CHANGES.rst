@@ -1,4 +1,4 @@
-0.0.2 (unreleased)
+1.0b1 (2021-06-24)
 ------------------
 
 - Nothing changed yet.
