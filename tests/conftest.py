@@ -9,7 +9,7 @@ def server_fixture():
     srvr = server.UnoServer()
     process = srvr.start(daemon=True)
     # Give libreoffice a chance to start
-    time.sleep(4)
+    time.sleep(5)
     yield process  # provide the fixture value
     print("Teardown Unoserver")
     process.terminate()
