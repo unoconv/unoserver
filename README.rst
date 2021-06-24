@@ -52,20 +52,20 @@ Usage
 Unoserver
 ~~~~~~~~~
 
-`unoserver [-h] [--interface INTERFACE] [--port PORT]`
+``unoserver [-h] [--interface INTERFACE] [--port PORT]``
 
-  * `--interface`: The interface used by the server, defaults to "localhost"
-  * `--port`: The port used by the server, defaults to "2002"
+* `--interface`: The interface used by the server, defaults to "localhost"
+* `--port`: The port used by the server, defaults to "2002"
 
 Unoconvert
 ~~~~~~~~~~
 
-`unoconverter [-h] [--interface INTERFACE] [--port PORT] --infile INFILE --outfile OUTFILE`
+``unoconverter [-h] [--interface INTERFACE] [--port PORT] --infile INFILE --outfile OUTFILE``
 
-  * `--interface`: The interface used by the server, defaults to "localhost"
-  * `--port`: The port used by the server, defaults to "2002"
-  * `--infile`: The path to the file to be converted
-  * `--outfile`: The path to the converted file
+* `--interface`: The interface used by the server, defaults to "localhost"
+* `--port`: The port used by the server, defaults to "2002"
+* `--infile`: The path to the file to be converted
+* `--outfile`: The path to the converted file
 
 
 Development and Testing
@@ -80,7 +80,7 @@ Development and Testing
 
 3. Run tests::
 
-    $ ve/bin/pytest tests 
+    $ ve/bin/pytest tests
 
 
 Comparison with `unoconv`
