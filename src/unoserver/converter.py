@@ -58,7 +58,7 @@ class UnoConverter:
             "com.sun.star.bridge.UnoUrlResolver", self.local_context
         )
         self.context = self.resolver.resolve(
-            "uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext"
+            f"uno:socket,host={interface},port={port};urp;StarOffice.ComponentContext"
         )
         self.service = self.context.ServiceManager
         self.desktop = self.service.createInstanceWithContext(
