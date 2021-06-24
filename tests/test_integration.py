@@ -69,5 +69,5 @@ def test_unknown_outfile_type(server_fixture):
 
     with tempfile.NamedTemporaryFile(suffix=".bog") as outfile:
         # Type detection should fail, as it's not a .doc file:
-        with pytest.raises(SystemExit):
+        with pytest.raises(RuntimeError):
             conv.convert(infile, outfile.name)

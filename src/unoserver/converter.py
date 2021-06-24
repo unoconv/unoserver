@@ -10,7 +10,6 @@ except ImportError:
 import argparse
 import logging
 import os
-import sys
 
 from com.sun.star.beans import PropertyValue
 
@@ -91,8 +90,7 @@ class UnoConverter:
             return export_filter["Name"]
 
         # No filter found
-        logger.error("Unknown file extension {ext}´")
-        sys.exit(1)
+        return None
 
     def convert(self, infile, outfile):
 
@@ -100,8 +98,9 @@ class UnoConverter:
         export_path = uno.systemPathToFileUrl(os.path.abspath(outfile))
         export_type = self.type_service.queryTypeByURL(export_path)
         if not export_type:
-            logger.error(
-                f"Unknown export file type, unkown extension {os.path.splitext(outfile)[-1]}"
+            extension = os.path.splitext(outfile)[-1]
+            raise RuntimeError(
+                f"Unknown export file type, unknown extension {extension}"
             )
 
         # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
@@ -119,6 +118,10 @@ class UnoConverter:
             # Figure out document type:
             import_type = get_doc_type(document)
             filtername = self.find_filter(import_type, export_type)
+            if filtername is None:
+                raise RuntimeError(
+                    f"Could not find an export filter from {import_type} to {export_type}"
+                )
 
             logger.info(f"Exporting to {outfile}")
             logger.info(f"Using {filtername} export filter")
