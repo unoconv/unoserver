@@ -97,18 +97,18 @@ class UnoConverter:
     def convert(self, infile, outfile):
 
         # Prepare some things
-        export_path = uno.systemPathToFileUrl(outfile)
+        export_path = uno.systemPathToFileUrl(os.path.abspath(outfile))
         export_type = self.type_service.queryTypeByURL(export_path)
         if not export_type:
             logger.error(
-                f"Unknown export file type, unkown extension {os.path.splitext(outfile)}"
+                f"Unknown export file type, unkown extension {os.path.splitext(outfile)[-1]}"
             )
 
         # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
         # exceptions are completely useless!
 
         # Load the document
-        import_path = uno.systemPathToFileUrl(infile)
+        import_path = uno.systemPathToFileUrl(os.path.abspath(infile))
         # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
         logger.info(f"Opening {infile}")
         document = self.desktop.loadComponentFromURL(
