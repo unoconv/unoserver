@@ -7,7 +7,7 @@ Overview
 --------
 
 Using LibreOffice to convert documents is easy, you can use a command like this to
-convert a file to PDF, for example:
+convert a file to PDF, for example::
 
     $ libreoffice --headless --convert-to pdf ~/Documents/MyDocument.odf
 
@@ -31,18 +31,18 @@ Installation
 NB! Windows and Mac support is as of yet untested.
 
 Unoserver needs to be installed by and run with the same Python installation that LibreOffice uses.
-On Unix this usually means you can just install it with:
+On Unix this usually means you can just install it with::
 
    $ sudo pip install unoserver
 
 If you have multiple versions of LibreOffice installed, you need to install it for each one.
 Usually each LibreOffice install will have it's own `python` executable and you need to run
-`pip` with that executable:
+`pip` with that executable::
 
   $ sudo /full/path/to/python -m pip install unoserver
 
 On Windows the paths to the LibreOffice Python executable are usually in locations such as
-`C:\Program Files (x86)\LibreOffice\python.exe`. On Mac it can be for example
+`C:\\Program Files (x86)\\LibreOffice\\python.exe`. On Mac it can be for example
 `/Applications/LibreOffice.app/Contents/python`.
 
 
@@ -66,6 +66,21 @@ Unoconvert
   * `--port`: The port used by the server, defaults to "2002"
   * `--infile`: The path to the file to be converted
   * `--outfile`: The path to the converted file
+
+
+Development and Testing
+-----------------------
+
+1. Clone the repo from `https://github.com/unoconv/unoserver`.
+
+2. Setup a virtualenv::
+
+    $ virtualenv --system-site-packages ve
+    $ ve/bin/pip install -e .[devenv]
+
+3. Run tests::
+
+    $ ve/bin/pytest tests 
 
 
 Comparison with `unoconv`
