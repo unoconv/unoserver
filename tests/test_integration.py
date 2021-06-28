@@ -1,5 +1,6 @@
 """Tests that start a real unoserver and does real things"""
 
+import io
 import os
 import pytest
 import sys
@@ -23,6 +24,32 @@ def test_pdf_conversion(server_fixture, filename):
 
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
+        with open(outfile.name, "rb") as testfile:
+            start = testfile.readline()
+            assert start == b"%PDF-1.5\n"
+
+
+class FakeStdio(io.BytesIO):
+    """A BytesIO with a buffer attribute, usable to send binary stdin data"""
+
+    @property
+    def buffer(self):
+        return self
+
+
+@pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
+def test_stdin_stdout(server_fixture, monkeypatch, filename):
+
+    with open(os.path.join(TEST_DOCS, filename), "rb") as infile:
+        infile_stream = FakeStdio(infile.read())
+
+    monkeypatch.setattr("sys.stdin", infile_stream)
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+        # Type detection should fail, as it's not a .doc file:
+        sys.argv = ["unoconverter", "--stdin", "--outfile", outfile.name]
+        converter.main()
+
         with open(outfile.name, "rb") as testfile:
             start = testfile.readline()
             assert start == b"%PDF-1.5\n"
@@ -64,10 +91,10 @@ def test_multiple_servers(server_fixture):
 
 
 def test_unknown_outfile_type(server_fixture):
-    conv = converter.UnoConverter()
     infile = os.path.join(TEST_DOCS, "simple.odt")
 
     with tempfile.NamedTemporaryFile(suffix=".bog") as outfile:
+        sys.argv = ["unoconverter", "--infile", infile, "--outfile", outfile.name]
         # Type detection should fail, as it's not a .doc file:
         with pytest.raises(RuntimeError):
-            conv.convert(infile, outfile.name)
+            converter.main()

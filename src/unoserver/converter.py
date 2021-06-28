@@ -10,6 +10,7 @@ except ImportError:
 import argparse
 import logging
 import os
+import sys
 
 from com.sun.star.beans import PropertyValue
 
@@ -106,12 +107,25 @@ class UnoConverter:
         # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
         # exceptions are completely useless!
 
-        # Load the document
-        import_path = uno.systemPathToFileUrl(os.path.abspath(infile))
-        # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-        logger.info(f"Opening {infile}")
+        input_props = (PropertyValue(Name="ReadOnly", Value=True),)
+
+        if infile:
+            # Load the document
+            import_path = uno.systemPathToFileUrl(os.path.abspath(infile))
+            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
+            logger.info(f"Opening {infile}")
+
+        elif infile is None:
+            # Assume stdin, do java object magic.
+            input_stream = self.service.createInstanceWithContext(
+                "com.sun.star.io.SequenceInputStream", self.context
+            )
+            input_stream.initialize((uno.ByteSequence(sys.stdin.buffer.read()),))
+            input_props += (PropertyValue(Name="InputStream", Value=input_stream),)
+            import_path = "private:stream"
+
         document = self.desktop.loadComponentFromURL(
-            import_path, "_default", 0, (PropertyValue(Name="ReadOnly", Value=True),)
+            import_path, "_default", 0, input_props
         )
 
         try:
@@ -142,8 +156,10 @@ def main():
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
-    parser.add_argument(
-        "--infile", required=True, help="The path to the file to be converted"
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument("--infile", help="The path to the file to be converted")
+    input_group.add_argument(
+        "--stdin", action="store_true", help="Read infile data from stdin"
     )
     parser.add_argument(
         "--outfile", required=True, help="The path to the converted file"
