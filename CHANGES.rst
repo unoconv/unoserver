@@ -1,9 +1,6 @@
 1.0b3 (unreleased)
 ------------------
 
-1.0b3 (unreleased)
-------------------
-
 - Make sure `interface` and `port` options are honored.
 
 

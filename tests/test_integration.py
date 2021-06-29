@@ -19,7 +19,7 @@ def test_pdf_conversion(server_fixture, filename):
 
     with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
         # Let Libreoffice write to the file and close it.
-        sys.argv = ["unoconverter", "--infile", infile, "--outfile", outfile.name]
+        sys.argv = ["unoconverter", infile, outfile.name]
         converter.main()
 
         # We now open it to check it, we can't use the outfile object,
@@ -47,7 +47,7 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
 
     with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
         # Type detection should fail, as it's not a .doc file:
-        sys.argv = ["unoconverter", "--stdin", "--outfile", outfile.name]
+        sys.argv = ["unoconverter", "-", outfile.name]
         converter.main()
 
         with open(outfile.name, "rb") as testfile:
@@ -61,7 +61,7 @@ def test_csv_conversion(server_fixture):
 
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
         # Let Libreoffice write to the file and close it.
-        conv.convert(infile, outfile.name)
+        conv.convert(inpath=infile, outpath=outfile.name)
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
         with open(outfile.name, "rb") as testfile:
@@ -94,7 +94,7 @@ def test_unknown_outfile_type(server_fixture):
     infile = os.path.join(TEST_DOCS, "simple.odt")
 
     with tempfile.NamedTemporaryFile(suffix=".bog") as outfile:
-        sys.argv = ["unoconverter", "--infile", infile, "--outfile", outfile.name]
+        sys.argv = ["unoconverter", infile, outfile.name]
         # Type detection should fail, as it's not a .doc file:
         with pytest.raises(RuntimeError):
             converter.main()

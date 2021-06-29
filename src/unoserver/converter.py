@@ -93,34 +93,41 @@ class UnoConverter:
         # No filter found
         return None
 
-    def convert(self, infile, outfile):
+    def convert(self, inpath=None, indata=None, outpath=None, convert_to=None):
+        """Converts a file from one type to another
 
-        # Prepare some things
-        export_path = uno.systemPathToFileUrl(os.path.abspath(outfile))
-        export_type = self.type_service.queryTypeByURL(export_path)
-        if not export_type:
-            extension = os.path.splitext(outfile)[-1]
-            raise RuntimeError(
-                f"Unknown export file type, unknown extension {extension}"
-            )
+        inpath: A path (on the local hard disk) to a file to be converted.
 
-        # TODO: Verify that infile exists and is openable, and that outdir exists, because uno's
-        # exceptions are completely useless!
+        indata: A byte string containing the file content to be converted.
+
+        outpath: A path (on the local hard disk) to store the result, or None, in which case
+                 the content of the converted file will be returned as a byte string.
+
+        convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
+        """
+        if inpath is None and indata is None:
+            raise RuntimeError("Nothing to convert.")
+
+        if inpath is not None and indata is not None:
+            raise RuntimeError("You can only pass in inpath or indata, not both.")
 
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
 
-        if infile:
-            # Load the document
-            import_path = uno.systemPathToFileUrl(os.path.abspath(infile))
-            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-            logger.info(f"Opening {infile}")
+        if inpath:
+            # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
+            # exceptions are completely useless!
 
-        elif infile is None:
-            # Assume stdin, do java object magic.
+            # Load the document
+            import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
+            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
+            logger.info(f"Opening {inpath}")
+
+        elif indata:
+            # The document content is passed in as a byte string
             input_stream = self.service.createInstanceWithContext(
                 "com.sun.star.io.SequenceInputStream", self.context
             )
-            input_stream.initialize((uno.ByteSequence(sys.stdin.buffer.read()),))
+            input_stream.initialize((uno.ByteSequence(indata),))
             input_props += (PropertyValue(Name="InputStream", Value=input_stream),)
             import_path = "private:stream"
 
@@ -131,13 +138,23 @@ class UnoConverter:
         try:
             # Figure out document type:
             import_type = get_doc_type(document)
+
+            # Prepare some things
+            export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
+            export_type = self.type_service.queryTypeByURL(export_path)
+            if not export_type:
+                extension = os.path.splitext(outpath)[-1]
+                raise RuntimeError(
+                    f"Unknown export file type, unknown extension {extension}"
+                )
+
             filtername = self.find_filter(import_type, export_type)
             if filtername is None:
                 raise RuntimeError(
                     f"Could not find an export filter from {import_type} to {export_type}"
                 )
 
-            logger.info(f"Exporting to {outfile}")
+            logger.info(f"Exporting to {outpath}")
             logger.info(f"Using {filtername} export filter")
 
             args = (
@@ -153,18 +170,26 @@ class UnoConverter:
 def main():
     parser = argparse.ArgumentParser("unoconverter")
     parser.add_argument(
+        "infile", help="The path to the file to be converted (use - for stdin)"
+    )
+    parser.add_argument(
+        "outfile", help="The path to the converted file (use - for stdout)"
+    )
+    parser.add_argument(
+        "--convert-to",
+        help="The file type/extension of the output file (ex pdf). Required when using stdout",
+    )
+    parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
-    input_group = parser.add_mutually_exclusive_group(required=True)
-    input_group.add_argument("--infile", help="The path to the file to be converted")
-    input_group.add_argument(
-        "--stdin", action="store_true", help="Read infile data from stdin"
-    )
-    parser.add_argument(
-        "--outfile", required=True, help="The path to the converted file"
-    )
     args = parser.parse_args()
 
     converter = UnoConverter(args.interface, args.port)
-    converter.convert(args.infile, args.outfile)
+
+    if args.infile == "-":
+        # Get data from stdin
+        indata = sys.stdin.buffer.read()
+        converter.convert(indata=indata, outpath=args.outfile)
+    else:
+        converter.convert(inpath=args.infile, outpath=args.outfile)
