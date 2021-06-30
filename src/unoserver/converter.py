@@ -154,15 +154,18 @@ class UnoConverter:
             # Figure out document type:
             import_type = get_doc_type(document)
 
-            # Figure out the output type:
             if outpath:
                 export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
-                export_type = self.type_service.queryTypeByURL(export_path)
             else:
                 export_path = "private:stream"
+
+            # Figure out the output type:
+            if convert_to:
                 export_type = self.type_service.queryTypeByURL(
                     f"file:///dummy.{convert_to}"
                 )
+            else:
+                export_type = self.type_service.queryTypeByURL(export_path)
 
             if not export_type:
                 extension = os.path.splitext(outpath)[-1]
