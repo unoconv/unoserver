@@ -8,11 +8,14 @@ except ImportError:
     )
 
 import argparse
+import io
 import logging
 import os
 import sys
+import unohelper
 
 from com.sun.star.beans import PropertyValue
+from com.sun.star.io import XOutputStream
 
 logging.basicConfig()
 logger = logging.getLogger("unoserver")
@@ -47,6 +50,17 @@ def get_doc_type(doc):
         "The input document is of an unknown document type. This is probably a bug.\n"
         "Please create an issue at https://github.com/unoconv/unoserver ."
     )
+
+
+class OutputStream(unohelper.Base, XOutputStream):
+    def __init__(self):
+        self.buffer = io.BytesIO()
+
+    def closeOutput(self):
+        pass
+
+    def writeBytes(self, seq):
+        self.buffer.write(seq.value)
 
 
 class UnoConverter:
@@ -135,17 +149,25 @@ class UnoConverter:
             import_path, "_default", 0, input_props
         )
 
+        # Now do the conversion
         try:
             # Figure out document type:
             import_type = get_doc_type(document)
 
-            # Prepare some things
-            export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
-            export_type = self.type_service.queryTypeByURL(export_path)
+            # Figure out the output type:
+            if outpath:
+                export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
+                export_type = self.type_service.queryTypeByURL(export_path)
+            else:
+                export_path = "private:stream"
+                export_type = self.type_service.queryTypeByURL(
+                    f"file:///dummy.{convert_to}"
+                )
+
             if not export_type:
                 extension = os.path.splitext(outpath)[-1]
                 raise RuntimeError(
-                    f"Unknown export file type, unknown extension {extension}"
+                    f"Unknown export file type, unknown extension '{extension}'"
                 )
 
             filtername = self.find_filter(import_type, export_type)
@@ -157,14 +179,24 @@ class UnoConverter:
             logger.info(f"Exporting to {outpath}")
             logger.info(f"Using {filtername} export filter")
 
-            args = (
+            output_props = (
                 PropertyValue(Name="FilterName", Value=filtername),
                 PropertyValue(Name="Overwrite", Value=True),
             )
-            document.storeToURL(export_path, args)
+            if outpath is None:
+                output_stream = OutputStream()
+                output_props += (
+                    PropertyValue(Name="OutputStream", Value=output_stream),
+                )
+            document.storeToURL(export_path, output_props)
 
         finally:
             document.close(True)
+
+        if outpath is None:
+            return output_stream.buffer.getvalue()
+        else:
+            return None
 
 
 def main():
@@ -187,9 +219,22 @@ def main():
 
     converter = UnoConverter(args.interface, args.port)
 
+    if args.outfile == "-":
+        # Set outfile to None, to get the data returned from the function,
+        # instead of written to a file.
+        args.outfile = None
+
     if args.infile == "-":
         # Get data from stdin
         indata = sys.stdin.buffer.read()
-        converter.convert(indata=indata, outpath=args.outfile)
+        result = converter.convert(
+            indata=indata, outpath=args.outfile, convert_to=args.convert_to
+        )
     else:
-        converter.convert(inpath=args.infile, outpath=args.outfile)
+        result = converter.convert(
+            inpath=args.infile, outpath=args.outfile, convert_to=args.convert_to
+        )
+
+    if args.outfile is None:
+        # Pipe result to stdout
+        sys.stdout.buffer.write(result)

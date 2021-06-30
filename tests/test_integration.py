@@ -43,16 +43,17 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
     with open(os.path.join(TEST_DOCS, filename), "rb") as infile:
         infile_stream = FakeStdio(infile.read())
 
+    outfile_stream = FakeStdio()
+
     monkeypatch.setattr("sys.stdin", infile_stream)
+    monkeypatch.setattr("sys.stdout", outfile_stream)
 
-    with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
-        # Type detection should fail, as it's not a .doc file:
-        sys.argv = ["unoconverter", "-", outfile.name]
-        converter.main()
+    sys.argv = ["unoconverter", "-", "-", "--convert-to", "pdf"]
+    converter.main()
 
-        with open(outfile.name, "rb") as testfile:
-            start = testfile.readline()
-            assert start == b"%PDF-1.5\n"
+    outfile_stream.seek(0)
+    start = outfile_stream.readline()
+    assert start == b"%PDF-1.5\n"
 
 
 def test_csv_conversion(server_fixture):
