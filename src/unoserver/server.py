@@ -14,7 +14,7 @@ class UnoServer:
         self.interface = interface
         self.port = port
 
-    def start(self, daemon=False):
+    def start(self, daemon=False, executable="libreoffice"):
         logger.info("Starting unoserver.")
 
         with tempfile.TemporaryDirectory() as tmpuserdir:
@@ -30,7 +30,7 @@ class UnoServer:
             # I think only --headless and --norestore are needed for
             # command line usage, but let's add everything to be safe.
             cmd = [
-                "libreoffice",
+                executable,
                 "--headless",
                 "--invisible",
                 "--nocrashreport",
@@ -57,9 +57,14 @@ def main():
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
     parser.add_argument("--daemon", action="store_true", help="Deamonize the server")
+    parser.add_argument(
+        "--executable",
+        default="libreoffice",
+        help="The path to the LibreOffice executable",
+    )
     args = parser.parse_args()
 
     server = UnoServer(args.interface, args.port)
     # If it's daemonized, this returns the process.
     # Otherwise it returns None after the process exites.
-    return server.start(daemon=args.daemon)
+    return server.start(daemon=args.daemon, executable=args.executable)
