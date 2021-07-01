@@ -72,6 +72,17 @@ def test_csv_conversion(server_fixture):
             assert contents == b"1,2,3,4,5,6\n"
 
 
+def test_impossible_conversion(server_fixture):
+    conv = converter.UnoConverter()
+    infile = os.path.join(TEST_DOCS, "simple.odt")
+
+    with tempfile.NamedTemporaryFile(suffix=".xls") as outfile:
+        # Let Libreoffice write to the file and close it.
+        with pytest.raises(RuntimeError) as e:
+            conv.convert(inpath=infile, outpath=outfile.name)
+            assert "Could not find an export filter" in e
+
+
 def test_multiple_servers(server_fixture):
     # The server fixture should already have started a server.
     # Make sure we can start a second one.

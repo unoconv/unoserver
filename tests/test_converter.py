@@ -41,3 +41,21 @@ def test_no_uno(monkeypatch):
         from unoserver import converter  # noqa: F401
 
     assert "This package must be installed with a Python" in str(e.value)
+
+
+def test_wrong_arguments(monkeypatch):
+
+    monkeypatch.setattr(converter.UnoConverter, "__init__", lambda self: None)
+    conv = converter.UnoConverter()
+
+    with pytest.raises(RuntimeError):
+        # You need to pass in an infile, or data
+        conv.convert()
+
+    with pytest.raises(RuntimeError):
+        # But not both
+        conv.convert(inpath="somesortoffile.xls", indata="Shoobx rules!")
+
+    with pytest.raises(RuntimeError):
+        # You need to pass in an outfile or a file type
+        conv.convert(inpath="somesortoffile.xls")

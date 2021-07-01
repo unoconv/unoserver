@@ -125,6 +125,11 @@ class UnoConverter:
         if inpath is not None and indata is not None:
             raise RuntimeError("You can only pass in inpath or indata, not both.")
 
+        if outpath is None and convert_to is None:
+            raise RuntimeError(
+                "If you don't specify an output path, you must specify a file-type."
+            )
+
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
 
         if inpath:
