@@ -1,4 +1,4 @@
-1.0b3 (unreleased)
+1.0b3 (2021-07-01)
 ------------------
 
 - Make sure `interface` and `port` options are honored.
