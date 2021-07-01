@@ -52,20 +52,23 @@ Usage
 Unoserver
 ~~~~~~~~~
 
-``unoserver [-h] [--interface INTERFACE] [--port PORT]``
+``unoserver [-h] [--interface INTERFACE] [--port PORT] [--daemon] [--executable EXECUTABLE]``
 
 * `--interface`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
+* `--daemon`:  Deamonize the server
+* `--executable`: The path to the LibreOffice executable
 
 Unoconvert
 ~~~~~~~~~~
 
-``unoconverter [-h] [--interface INTERFACE] [--port PORT] --infile INFILE --outfile OUTFILE``
+``unoconvert [-h] [--convert-to CONVERT_TO] [--interface INTERFACE] [--port PORT] infile outfile``
 
+* `infile`: The path to the file to be converted (use - for stdin)
+* `outfile`: The path to the converted file (use - for stdout)
+* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
 * `--interface`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
-* `--infile`: The path to the file to be converted
-* `--outfile`: The path to the converted file
 
 
 Development and Testing

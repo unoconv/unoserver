@@ -3,6 +3,14 @@
 
 - Make sure `interface` and `port` options are honored.
 
+- Added an --executable option to the server to pick a specific libreoffice installation.
+
+- Changed the infile and outfile options to be positional.
+
+- Added support for using stdin and stdout.
+
+- Added a --convert-to argument to specify the resulting filetype.
+
 
 1.0b2 (2021-06-24)
 ------------------

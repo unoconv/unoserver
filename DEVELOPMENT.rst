@@ -25,7 +25,9 @@ for development, simply clone the repository, and then make the development envi
 Code quality
 ------------
 
-
+This package uses github actions to run code quality checks and tests. We use `flake8` for quality,
+`black` for styling and `pyroma` for packaging tests. To ensure that your pull requests doesn't fail
+on those tests, you can install the `pre-commit-hooks` package. See https://pre-commit.com/ .
 
 
 Running tests
