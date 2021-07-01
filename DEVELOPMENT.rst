@@ -8,17 +8,18 @@ In addition to Python 3 and normal development tools, ie, the `build-essentials`
 XCode on OS X, etc, you also need to install pre-commit.
 
 
-
-
 Installing for development
 --------------------------
 
 Unoserver uses a Makefile as a shortcut for common development tasks. To install Unoserver
 for development, simply clone the repository, and then make the development environment.
 
+You need to make the virtualenvironment with `--system-site-packages` to get access to the
+`uno` library. (This assumes you have a LibreOffice installation that uses the system Python).
+
     $ git clone git@github.com:unoconv/unoserver.git
     $ cd unoserver
-    $ virtualenv ve
+    $ virtualenv ve --system-site-packages
     $ ve/bin/pip install -e .[devenv]
 
 
