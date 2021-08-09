@@ -208,7 +208,7 @@ class UnoConverter:
 
 
 def main():
-    parser = argparse.ArgumentParser("unoconverter")
+    parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
         "infile", help="The path to the file to be converted (use - for stdin)"
     )
