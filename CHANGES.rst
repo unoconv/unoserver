@@ -1,7 +1,7 @@
 1.0b4 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- A few small spelling and grammar changes.
 
 
 1.0b3 (2021-07-01)
