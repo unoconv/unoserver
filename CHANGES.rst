@@ -1,5 +1,5 @@
-1.0b4 (unreleased)
-------------------
+1.0 (2021-08-10)
+----------------
 
 - A few small spelling and grammar changes.
 
