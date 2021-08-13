@@ -41,9 +41,35 @@ Usually each LibreOffice install will have it's own `python` executable and you 
 
   $ sudo /full/path/to/python -m pip install unoserver
 
-On Windows the paths to the LibreOffice Python executable are usually in locations such as
-`C:\\Program Files (x86)\\LibreOffice\\python.exe`. On Mac it can be for example
-`/Applications/LibreOffice.app/Contents/python`.
+To find all Python installations that have the relevant LibreOffice libraries installed,
+you can run a script called `find_uno.py`::
+
+  wget -O find_uno.py https://gist.githubusercontent.com/regebro/036da022dc7d5241a0ee97efdf1458eb/raw/find_uno.py
+  python3 find_uno.py
+
+This should give an output similar to this::
+
+  Trying python found at /usr/bin/python3... Success!
+  Trying python found at /opt/libreoffice7.1/program/python... Success!
+  Found 2 Pythons with Libreoffice libraries:
+  /usr/bin/python3
+  /opt/libreoffice7.1/program/python
+
+The `/usr/bin/python3` binary will be the system Python used for versions of
+Libreoffice installed by the system package manager. The Pythons installed
+under `/opt/` will be Python versions that come with official LibreOffice
+distributions.
+
+To install on such distributions, do the following::
+
+  $ wget https://bootstrap.pypa.io/get-pip.py
+  $ sudo /path/to/python get-pip.py
+  $ sudo /path/to/python -m pip install unoserver
+
+Windows and Mac installs aren't officially supported yet, but on Windows the
+paths to the LibreOffice Python executable are usually in locations such as
+`C:\\Program Files (x86)\\LibreOffice\\python.exe`. On Mac it can be for
+example `/Applications/LibreOffice.app/Contents/python`.
 
 
 Usage
