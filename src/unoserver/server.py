@@ -1,5 +1,6 @@
 import argparse
 import logging
+import signal
 import subprocess
 import tempfile
 from urllib import request
@@ -44,8 +45,22 @@ class UnoServer:
 
             logger.info("Command: " + " ".join(cmd))
             process = subprocess.Popen(cmd)
+
+            def sigterm_handler(signum, frame):
+                logger.info("Exiting on termination signal")
+                process.terminate()
+                return
+
+            signal.signal(signal.SIGTERM, sigterm_handler)
+
             if not daemon:
-                process.wait()
+                try:
+                    process.wait()
+                except KeyboardInterrupt:
+                    logger.info("Exiting on termination signal")
+                    process.terminate()
+                    return
+
             else:
                 return process
 

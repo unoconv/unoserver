@@ -1,7 +1,7 @@
 1.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Fixed a bug that meant `unoserver` did not behave well with Supervisord's restart command.
 
 
 1.0 (2021-08-10)
