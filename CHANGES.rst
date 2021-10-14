@@ -1,5 +1,5 @@
-1.0.2 (unreleased)
-------------------
+1.1 (2021-10-14)
+----------------
 
 - Fixed a bug: If you specified an unknown file extension while piping the
   result to stdout, you would get a type error instead of the correct error.
