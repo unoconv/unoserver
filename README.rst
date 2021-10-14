@@ -75,6 +75,10 @@ example `/Applications/LibreOffice.app/Contents/python`.
 Usage
 -----
 
+Installing unoserver installs two scripts, `unoserver` and `unoconverter`.
+Both can also be run as modules with `python3 -m unoserver.server` and
+`python3 -m unoserver.converter` with the same arguments as the main scripts.
+
 Unoserver
 ~~~~~~~~~
 

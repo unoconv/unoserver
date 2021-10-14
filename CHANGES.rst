@@ -1,7 +1,16 @@
 1.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Fixed a bug: If you specified an unknown file extension while piping the
+  result to stdout, you would get a type error instead of the correct error.
+
+- Added an extra check that libreoffice is quite dead when exiting,
+  I experienced a few cases where soffice.bin was using 100% load in the
+  background after unoserver exited. I hope this takes care of that.
+
+- Added ``if __name__ == "main":`` blocks so you can run the modules
+  as scripts, and also with ``python3 -m unoserver.server`` and
+  ``python3 -m unoserver.converter``.
 
 
 1.0.1 (2021-09-20)

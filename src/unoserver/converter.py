@@ -173,7 +173,10 @@ class UnoConverter:
                 export_type = self.type_service.queryTypeByURL(export_path)
 
             if not export_type:
-                extension = os.path.splitext(outpath)[-1]
+                if convert_to:
+                    extension = convert_to
+                else:
+                    extension = os.path.splitext(outpath)[-1]
                 raise RuntimeError(
                     f"Unknown export file type, unknown extension '{extension}'"
                 )
@@ -246,3 +249,7 @@ def main():
     if args.outfile is None:
         # Pipe result to stdout
         sys.stdout.buffer.write(result)
+
+
+if __name__ == "__main__":
+    main()

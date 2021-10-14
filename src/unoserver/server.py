@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import signal
 import subprocess
 import tempfile
@@ -81,5 +82,24 @@ def main():
 
     server = UnoServer(args.interface, args.port)
     # If it's daemonized, this returns the process.
-    # Otherwise it returns None after the process exites.
-    return server.start(daemon=args.daemon, executable=args.executable)
+    # It returns 0 of getting killed in a normal way.
+    # Otherwise it returns 1 after the process exits.
+    process = server.start(daemon=True, executable=args.executable)
+    if args.daemon:
+        return process
+    pid = process.pid
+    process.wait()
+    try:
+        # Make sure it's really dead
+        os.kill(pid, 0)
+        # It was killed
+        return 0
+    except OSError as e:
+        if e.errno == 3:
+            # All good, it was already dead.
+            return 0
+        raise
+
+
+if __name__ == "__main__":
+    main()
