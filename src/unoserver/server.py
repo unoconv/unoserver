@@ -6,7 +6,6 @@ import subprocess
 import tempfile
 from urllib import request
 
-logging.basicConfig()
 logger = logging.getLogger("unoserver")
 logger.setLevel(logging.INFO)
 

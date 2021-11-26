@@ -17,7 +17,6 @@ import unohelper
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import XOutputStream
 
-logging.basicConfig()
 logger = logging.getLogger("unoserver")
 logger.setLevel(logging.DEBUG)
 
