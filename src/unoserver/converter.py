@@ -17,7 +17,7 @@ import unohelper
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import XOutputStream
 
-logger = logging.getLogger("unoserver")
+logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 SFX_FILTER_IMPORT = 1
