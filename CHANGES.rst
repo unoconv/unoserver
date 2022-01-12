@@ -1,7 +1,7 @@
 1.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Move logging configuration from import time to the main() functions.
 
 
 1.1 (2021-10-14)

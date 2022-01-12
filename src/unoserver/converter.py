@@ -17,9 +17,7 @@ import unohelper
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import XOutputStream
 
-logging.basicConfig()
 logger = logging.getLogger("unoserver")
-logger.setLevel(logging.DEBUG)
 
 SFX_FILTER_IMPORT = 1
 SFX_FILTER_EXPORT = 2
@@ -211,6 +209,9 @@ class UnoConverter:
 
 
 def main():
+    logging.basicConfig()
+    logger.setLevel(logging.DEBUG)
+
     parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
         "infile", help="The path to the file to be converted (use - for stdin)"

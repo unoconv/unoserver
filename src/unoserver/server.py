@@ -6,9 +6,7 @@ import subprocess
 import tempfile
 from urllib import request
 
-logging.basicConfig()
 logger = logging.getLogger("unoserver")
-logger.setLevel(logging.INFO)
 
 
 class UnoServer:
@@ -67,6 +65,9 @@ class UnoServer:
 
 
 def main():
+    logging.basicConfig()
+    logger.setLevel(logging.INFO)
+
     parser = argparse.ArgumentParser("unoserver")
     parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
