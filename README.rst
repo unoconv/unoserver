@@ -66,6 +66,12 @@ To install on such distributions, do the following::
   $ sudo /path/to/python get-pip.py
   $ sudo /path/to/python -m pip install unoserver
 
+You can also install it in a virtualenv, if you are using the system Python
+for that virtualenv, and specify the ``--system-site-packages`` parameter::
+
+  $ virtualenv --python=/usr/bin/python3 --system-site-packages virtenv
+  $ virtenv/bin/pip install unoserver
+
 Windows and Mac installs aren't officially supported yet, but on Windows the
 paths to the LibreOffice Python executable are usually in locations such as
 `C:\\Program Files (x86)\\LibreOffice\\python.exe`. On Mac it can be for
