@@ -45,12 +45,13 @@ class UnoServer:
             logger.info("Command: " + " ".join(cmd))
             process = subprocess.Popen(cmd)
 
-            def sigterm_handler(signum, frame):
-                logger.info("Exiting on termination signal")
-                process.terminate()
-                return
+            def signal_handler(signum, frame):
+                logger.info("Sending signal to LibreOffice")
+                process.send_signal(signum)
 
-            signal.signal(signal.SIGTERM, sigterm_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
+            signal.signal(signal.SIGHUP, signal_handler)
+            signal.signal(signal.SIGINT, signal_handler)
             return process
 
 
@@ -79,16 +80,7 @@ def main():
     if args.daemon:
         return process
     pid = process.pid
-    try:
-        process.wait()
-    except KeyboardInterrupt:
-        logger.info("Exiting on KeyboardInterrupt")
-        process.terminate()
-        try:
-            process.wait()
-        except KeyboardInterrupt:
-            logger.info("LibreOffice is being stubborn")
-            process.kill()
+    process.wait()
 
     try:
         # Make sure it's really dead
