@@ -29,6 +29,7 @@ DOC_TYPES = {
     "com.sun.star.sdb.DocumentDataSource",
     "com.sun.star.formula.FormulaProperties",
     "com.sun.star.script.BasicIDE",
+    "com.sun.star.text.WebDocument",  # Supposedly deprecated? But still around.
 }
 
 
