@@ -2,6 +2,7 @@
 ----------------
 
 - Move logging configuration from import time to the main() functions.
+- Improved the handling of KeyboardInterrupt
 
 
 1.1 (2021-10-14)
