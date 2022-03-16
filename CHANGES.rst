@@ -3,6 +3,9 @@
 
 - Move logging configuration from import time to the main() functions.
 
+- Added the deprecated but still necessary com.sun.star.text.WebDocument
+  for HTML docs.
+
 
 1.1 (2021-10-14)
 ----------------
