@@ -2,6 +2,7 @@
 ----------------
 
 - Move logging configuration from import time to the main() functions.
+- Improved the handling of KeyboardInterrupt
 
 - Added the deprecated but still necessary com.sun.star.text.WebDocument
   for HTML docs.

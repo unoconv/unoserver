@@ -14,7 +14,7 @@ class UnoServer:
         self.interface = interface
         self.port = port
 
-    def start(self, daemon=False, executable="libreoffice"):
+    def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
 
         with tempfile.TemporaryDirectory() as tmpuserdir:
@@ -51,17 +51,7 @@ class UnoServer:
                 return
 
             signal.signal(signal.SIGTERM, sigterm_handler)
-
-            if not daemon:
-                try:
-                    process.wait()
-                except KeyboardInterrupt:
-                    logger.info("Exiting on termination signal")
-                    process.terminate()
-                    return
-
-            else:
-                return process
+            return process
 
 
 def main():
@@ -85,11 +75,21 @@ def main():
     # If it's daemonized, this returns the process.
     # It returns 0 of getting killed in a normal way.
     # Otherwise it returns 1 after the process exits.
-    process = server.start(daemon=True, executable=args.executable)
+    process = server.start(executable=args.executable)
     if args.daemon:
         return process
     pid = process.pid
-    process.wait()
+    try:
+        process.wait()
+    except KeyboardInterrupt:
+        logger.info("Exiting on KeyboardInterrupt")
+        process.terminate()
+        try:
+            process.wait()
+        except KeyboardInterrupt:
+            logger.info("LibreOffice is being stubborn")
+            process.kill()
+
     try:
         # Make sure it's really dead
         os.kill(pid, 0)
