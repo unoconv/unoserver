@@ -5,7 +5,7 @@ name: Python package
 
 on:
   push:
-    branches: [ master ]
+    branches: [ '**' ]
   pull_request:
     branches: [ master ]
 
@@ -14,13 +14,14 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false
+      fail-fast: true
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install -e .[devenv]
+        sudo apt-get update
         sudo apt-get install libreoffice
     - name: Check style with black
       run: |
