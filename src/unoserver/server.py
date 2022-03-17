@@ -47,7 +47,12 @@ class UnoServer:
 
             def signal_handler(signum, frame):
                 logger.info("Sending signal to LibreOffice")
-                process.send_signal(signum)
+                try:
+                    process.send_signal(signum)
+                except ProcessLookupError as e:
+                    # 3 means the process is already dead
+                    if e.errno != 3:
+                        raise
 
             signal.signal(signal.SIGTERM, signal_handler)
             signal.signal(signal.SIGHUP, signal_handler)
@@ -80,6 +85,7 @@ def main():
     if args.daemon:
         return process
     pid = process.pid
+
     process.wait()
 
     try:
