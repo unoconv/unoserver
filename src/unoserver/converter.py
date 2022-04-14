@@ -47,7 +47,7 @@ def get_doc_type(doc):
     # adding document types, which seems unlikely.
     raise RuntimeError(
         "The input document is of an unknown document type. This is probably a bug.\n"
-        "Please create an issue at https://github.com/unoconv/unoserver ."
+        "Please create an issue at https://github.com/unoconv/unoserver."
     )
 
 
