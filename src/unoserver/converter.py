@@ -3,7 +3,7 @@ try:
 except ImportError:
     raise ImportError(
         "Could not find the 'uno' library. This package must be installed with a Python "
-        "installation that has a 'uno' library. This typically means you should install"
+        "installation that has a 'uno' library. This typically means you should install "
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
