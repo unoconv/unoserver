@@ -3,7 +3,7 @@ try:
 except ImportError:
     raise ImportError(
         "Could not find the 'uno' library. This package must be installed with a Python "
-        "installation that has a 'uno' library. This typically means you should install"
+        "installation that has a 'uno' library. This typically means you should install "
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
@@ -47,7 +47,7 @@ def get_doc_type(doc):
     # adding document types, which seems unlikely.
     raise RuntimeError(
         "The input document is of an unknown document type. This is probably a bug.\n"
-        "Please create an issue at https://github.com/unoconv/unoserver ."
+        "Please create an issue at https://github.com/unoconv/unoserver."
     )
 
 
