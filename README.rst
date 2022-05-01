@@ -33,7 +33,7 @@ NB! Windows and Mac support is as of yet untested.
 Unoserver needs to be installed by and run with the same Python installation that LibreOffice uses.
 On Unix this usually means you can just install it with::
 
-   $ sudo pip install unoserver
+   $ pip install unoserver
 
 If you have multiple versions of LibreOffice installed, you need to install it for each one.
 Usually each LibreOffice install will have it's own `python` executable and you need to run
