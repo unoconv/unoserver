@@ -228,8 +228,26 @@ def main():
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
+    parser.add_argument("--start-rpc-server", action='store_true', help="Setup an xmlrpc server to allow control over this converter.")
+    parser.add_argument("--rpc-port", type = int, default = 8811,
+                        help = 'Port to use for RPC (default 8811)')
     args = parser.parse_args()
 
+    if args.start_rpc_server:
+        converter = UnoConverter(args.interface, args.port)
+        from xmlrpc.server import SimpleXMLRPCServer
+        # Create server
+        with SimpleXMLRPCServer(('127.0.0.1', args.rpc_port), allow_none = True) as server:
+            server.register_introspection_functions()
+            @server.register_function
+            def convert(infile=None, indata=None, outfile=None, convert_to=None):
+                result = converter.convert(
+                    inpath=infile, indata=indata, outpath=outfile, convert_to=convert_to
+                )
+                return result
+            
+        sys.exit()
+            
     converter = UnoConverter(args.interface, args.port)
 
     if args.outfile == "-":
