@@ -37,10 +37,10 @@ class UnoServer:
                 "--nodefault",
                 "--nologo",
                 "--nofirststartwizard",
-                "--norestore",                
+                "--norestore",
                 f"--accept={connection}",
             ]
-            
+
             # In Windows seems not work, display bootstrap.ini corrupt error?
             if platform.system() == 'Linux':
                 cmd.append(f"-env:UserInstallation={self.tmp_uri}")
@@ -57,7 +57,7 @@ class UnoServer:
                     if e.errno != 3:
                         raise
 
-            signal.signal(signal.SIGTERM, signal_handler)            
+            signal.signal(signal.SIGTERM, signal_handler)
             signal.signal(signal.SIGINT, signal_handler)
             
             # In Windows not exists a signal called SIGHUP
