@@ -4,10 +4,10 @@ import os
 import signal
 import subprocess
 import tempfile
+import platform
 from urllib import request
 
 logger = logging.getLogger("unoserver")
-
 
 class UnoServer:
     def __init__(self, interface="127.0.0.1", port="2002"):
@@ -37,10 +37,13 @@ class UnoServer:
                 "--nodefault",
                 "--nologo",
                 "--nofirststartwizard",
-                "--norestore",
-                f"-env:UserInstallation={self.tmp_uri}",
+                "--norestore",                
                 f"--accept={connection}",
             ]
+            
+            # In Windows seems not work, display bootstrap.ini corrupt error?
+            if platform.system() == 'Linux':
+                cmd.append(f"-env:UserInstallation={self.tmp_uri}")
 
             logger.info("Command: " + " ".join(cmd))
             process = subprocess.Popen(cmd)
@@ -54,9 +57,13 @@ class UnoServer:
                     if e.errno != 3:
                         raise
 
-            signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGHUP, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)            
             signal.signal(signal.SIGINT, signal_handler)
+            
+            # In Windows not exists a signal called SIGHUP
+            if platform.system() == 'Linux':
+                signal.signal(signal.SIGHUP, signal_handler)
+                
             return process
 
 
