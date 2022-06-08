@@ -25,8 +25,8 @@ class UnoServer:
             )
 
             # Store this as an attribute, it helps testing                       
-            # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-            self.tmp_uri = "file:" + ('//' if platform.system() == 'Linux' else '') + request.pathname2url(tmpuserdir)
+            # In windows if the tmp path is invalid causes bootstrap.ini strange corrupt error, see pathname2url implementation                  
+            self.tmp_uri = f"file:{request.pathname2url(tmpuserdir)}"
 
             # I think only --headless and --norestore are needed for
             # command line usage, but let's add everything to be safe.
