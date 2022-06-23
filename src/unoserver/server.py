@@ -25,7 +25,7 @@ class UnoServer:
                     % (self.interface, self.port)
             )
 
-            # Store this as an attribute, it helps testing                       
+            # Store this as an attribute, it helps testing
             # In windows if the path is invalid causes bootstrap.ini strange corrupt error
             self.tmp_uri = Path(tmpuserdir).as_uri()
 
