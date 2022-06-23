@@ -5,9 +5,10 @@ import signal
 import subprocess
 import tempfile
 import platform
-from urllib import request
+from pathlib import Path
 
 logger = logging.getLogger("unoserver")
+
 
 class UnoServer:
     def __init__(self, interface="127.0.0.1", port="2002"):
@@ -20,13 +21,13 @@ class UnoServer:
         with tempfile.TemporaryDirectory() as tmpuserdir:
 
             connection = (
-                "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-                % (self.interface, self.port)
+                    "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+                    % (self.interface, self.port)
             )
 
             # Store this as an attribute, it helps testing                       
             # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-            self.tmp_uri = "file:" + ('//' if platform.system() == 'Linux' else '') + request.pathname2url(tmpuserdir)
+            self.tmp_uri = Path(tmpuserdir).as_uri()
 
             # I think only --headless and --norestore are needed for
             # command line usage, but let's add everything to be safe.
@@ -41,7 +42,7 @@ class UnoServer:
                 "--norestore",
                 f"-env:UserInstallation={self.tmp_uri}",
                 f"--accept={connection}",
-            ]            
+            ]
 
             logger.info("Command: " + " ".join(cmd))
             process = subprocess.Popen(cmd)
@@ -57,11 +58,11 @@ class UnoServer:
 
             signal.signal(signal.SIGTERM, signal_handler)
             signal.signal(signal.SIGINT, signal_handler)
-            
-            # In Windows not exists a signal called SIGHUP
-            if platform.system() == 'Linux':
+
+            # Signal SIGHUP is available only in Unix systems
+            if platform.system() != 'Windows':
                 signal.signal(signal.SIGHUP, signal_handler)
-                
+
             return process
 
 
@@ -87,9 +88,12 @@ def main():
     # It returns 0 of getting killed in a normal way.
     # Otherwise it returns 1 after the process exits.
     process = server.start(executable=args.executable)
+    pid = process.pid
+
+    logger.info(f"Server PID: {pid}")
+
     if args.daemon:
         return process
-    pid = process.pid
 
     process.wait()
 
