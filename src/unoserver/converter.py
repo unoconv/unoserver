@@ -137,7 +137,7 @@ class UnoConverter:
             # exceptions are completely useless!
 
             if not Path(inpath).exists():
-                raise RuntimeError(f"Opening path {inpath} not exists.")
+                raise RuntimeError(f"Path {inpath} does not exist.")
 
             # Load the document
             import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
