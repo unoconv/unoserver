@@ -4,7 +4,8 @@ import os
 import signal
 import subprocess
 import tempfile
-from urllib import request
+import platform
+from pathlib import Path
 
 logger = logging.getLogger("unoserver")
 
@@ -20,12 +21,13 @@ class UnoServer:
         with tempfile.TemporaryDirectory() as tmpuserdir:
 
             connection = (
-                "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-                % (self.interface, self.port)
+                    "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+                    % (self.interface, self.port)
             )
 
             # Store this as an attribute, it helps testing
-            self.tmp_uri = "file://" + request.pathname2url(tmpuserdir)
+            # In windows if the path is invalid causes bootstrap.ini strange corrupt error
+            self.tmp_uri = Path(tmpuserdir).as_uri()
 
             # I think only --headless and --norestore are needed for
             # command line usage, but let's add everything to be safe.
@@ -55,8 +57,12 @@ class UnoServer:
                         raise
 
             signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGHUP, signal_handler)
             signal.signal(signal.SIGINT, signal_handler)
+
+            # Signal SIGHUP is available only in Unix systems
+            if platform.system() != 'Windows':
+                signal.signal(signal.SIGHUP, signal_handler)
+
             return process
 
 
@@ -82,9 +88,12 @@ def main():
     # It returns 0 of getting killed in a normal way.
     # Otherwise it returns 1 after the process exits.
     process = server.start(executable=args.executable)
+    pid = process.pid
+
+    logger.info(f"Server PID: {pid}")
+
     if args.daemon:
         return process
-    pid = process.pid
 
     process.wait()
 

@@ -14,6 +14,7 @@ import os
 import sys
 import unohelper
 
+from pathlib import Path
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import XOutputStream
 
@@ -134,6 +135,9 @@ class UnoConverter:
         if inpath:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
             # exceptions are completely useless!
+
+            if not Path(inpath).exists():
+                raise RuntimeError(f"Path {inpath} does not exist.")
 
             # Load the document
             import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
