@@ -3,6 +3,11 @@
 
 - Nothing changed yet.
 
+- Added new feature: comparing documents and export the result to any format.
+
+- You can run the new module as scripts, and also with ``python3 -m unoserver.comparer`` just
+  like the ``python3 -m unoserver.server`` and ``python3 -m unoserver.converter``.
+
 
 1.3 (2023-02-03)
 ----------------
