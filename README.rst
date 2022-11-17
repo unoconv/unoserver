@@ -135,7 +135,7 @@ for using LibreOffice as a listener to convert documents.
 Differences for the user
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Easier install for system versions of LibreOffice. On Linux, the apckaged versions of LibreOffice
+* Easier install for system versions of LibreOffice. On Linux, the packaged versions of LibreOffice
   typically uses the system Python, making it easy to install `unoserver` with a simple
   `sudo pip install unoserver` command.
 
