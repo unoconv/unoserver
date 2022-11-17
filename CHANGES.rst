@@ -1,7 +1,7 @@
 1.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Now works on Windows (although it's not officially supported).
 
 
 1.2 (2022-03-17)
