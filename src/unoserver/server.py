@@ -21,8 +21,8 @@ class UnoServer:
         with tempfile.TemporaryDirectory() as tmpuserdir:
 
             connection = (
-                    "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-                    % (self.interface, self.port)
+                "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+                % (self.interface, self.port)
             )
 
             # Store this as an attribute, it helps testing
@@ -60,7 +60,7 @@ class UnoServer:
             signal.signal(signal.SIGINT, signal_handler)
 
             # Signal SIGHUP is available only in Unix systems
-            if platform.system() != 'Windows':
+            if platform.system() != "Windows":
                 signal.signal(signal.SIGHUP, signal_handler)
 
             return process
