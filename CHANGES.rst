@@ -2,6 +2,8 @@
 ----------------
 
 - Now works on Windows (although it's not officially supported).
+- Added --filter argument to unoconverter to allow explicit selection of which
+  export filter to use for conversion.
 
 
 1.2 (2022-03-17)
