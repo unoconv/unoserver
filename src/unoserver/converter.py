@@ -86,15 +86,7 @@ class UnoConverter:
         )
 
     def find_filter(self, import_type, export_type):
-        # List export filters. You can only search on module, iflags and eflags,
-        # so the import and export types we have to test in a loop
-        export_filters = self.filter_service.createSubSetEnumerationByQuery(
-            "getSortedFilterList():iflags=2"
-        )
-
-        while export_filters.hasMoreElements():
-            # Filter DocumentService here
-            export_filter = prop2dict(export_filters.nextElement())
+        for export_filter in self.get_available_export_filters():
             if export_filter["DocumentService"] != import_type:
                 continue
             if export_filter["Type"] != export_type:
@@ -106,6 +98,17 @@ class UnoConverter:
 
         # No filter found
         return None
+
+    def get_available_export_filters(self):
+        # List export filters. You can only search on module, iflags and eflags,
+        # so the import and export types we have to test in a loop
+        export_filters = self.filter_service.createSubSetEnumerationByQuery(
+            "getSortedFilterList():iflags=2"
+        )
+
+        while export_filters.hasMoreElements():
+            # Filter DocumentService here
+            yield prop2dict(export_filters.nextElement())
 
     def convert(self, inpath=None, indata=None, outpath=None, convert_to=None):
         """Converts a file from one type to another
