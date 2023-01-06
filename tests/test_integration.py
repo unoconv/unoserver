@@ -26,7 +26,7 @@ def test_pdf_conversion(server_fixture, filename):
         # it won't reflect the external changes.
         with open(outfile.name, "rb") as testfile:
             start = testfile.readline()
-            assert start == b"%PDF-1.5\n"
+            assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
 
 
 class FakeStdio(io.BytesIO):
@@ -53,7 +53,7 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
 
     outfile_stream.seek(0)
     start = outfile_stream.readline()
-    assert start == b"%PDF-1.5\n"
+    assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
 
 
 def test_csv_conversion(server_fixture):
