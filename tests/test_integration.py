@@ -117,7 +117,13 @@ def test_explicit_export_filter(server_fixture, filename):
 
     # We use an extension that's not .pdf to verify that the converter does not auto-detect filter based on extension
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
-        sys.argv = ["unoconverter", "--filter", "writer_pdf_Export", infile, outfile.name]
+        sys.argv = [
+            "unoconverter",
+            "--filter",
+            "writer_pdf_Export",
+            infile,
+            outfile.name,
+        ]
         converter.main()
 
         # We now open it to check it, we can't use the outfile object,
@@ -128,7 +134,9 @@ def test_explicit_export_filter(server_fixture, filename):
 
 
 @pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
-def test_invalid_explicit_export_filter_prints_available_filters(server_fixture, filename):
+def test_invalid_explicit_export_filter_prints_available_filters(
+    server_fixture, filename
+):
     infile = os.path.join(TEST_DOCS, filename)
 
     # We use an extension that's not .pdf to verify that the converter does not auto-detect filter based on extension
@@ -137,6 +145,6 @@ def test_invalid_explicit_export_filter_prints_available_filters(server_fixture,
         try:
             converter.main()
         except RuntimeError as err:
-            assert "Office Open XML Text" in f"{err}"
-            assert "writer8" in f"{err}"
-            assert "writer_pdf_Export" in f"{err}"
+            assert "Office Open XML Text" in err.args[0]
+            assert "writer8" in err.args[0]
+            assert "writer_pdf_Export" in err.args[0]

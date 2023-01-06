@@ -98,11 +98,12 @@ Unoserver
 Unoconvert
 ~~~~~~~~~~
 
-``unoconvert [-h] [--convert-to CONVERT_TO] [--interface INTERFACE] [--port PORT] infile outfile``
+``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--interface INTERFACE] [--port PORT] infile outfile``
 
 * `infile`: The path to the file to be converted (use - for stdin)
 * `outfile`: The path to the converted file (use - for stdout)
 * `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
+* `--filter`: The export filter to use when converting. It is selected automatically if not specified.
 * `--interface`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
 
