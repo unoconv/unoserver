@@ -109,3 +109,34 @@ def test_unknown_outfile_type(server_fixture):
         # Type detection should fail, as it's not a .doc file:
         with pytest.raises(RuntimeError):
             converter.main()
+
+
+@pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
+def test_explicit_export_filter(server_fixture, filename):
+    infile = os.path.join(TEST_DOCS, filename)
+
+    # We use an extension that's not .pdf to verify that the converter does not auto-detect filter based on extension
+    with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
+        sys.argv = ["unoconverter", "--filter", "writer_pdf_Export", infile, outfile.name]
+        converter.main()
+
+        # We now open it to check it, we can't use the outfile object,
+        # it won't reflect the external changes.
+        with open(outfile.name, "rb") as testfile:
+            start = testfile.readline()
+            assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
+
+
+@pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
+def test_invalid_explicit_export_filter_prints_available_filters(server_fixture, filename):
+    infile = os.path.join(TEST_DOCS, filename)
+
+    # We use an extension that's not .pdf to verify that the converter does not auto-detect filter based on extension
+    with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
+        sys.argv = ["unoconverter", "--filter", "asdasdasd", infile, outfile.name]
+        try:
+            converter.main()
+        except RuntimeError as err:
+            assert "Office Open XML Text" in f"{err}"
+            assert "writer8" in f"{err}"
+            assert "writer_pdf_Export" in f"{err}"
