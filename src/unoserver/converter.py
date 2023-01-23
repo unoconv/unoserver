@@ -113,7 +113,9 @@ class UnoConverter:
     def get_available_filter_names(self):
         return [filter["Name"] for filter in self.get_available_export_filters()]
 
-    def convert(self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None):
+    def convert(
+        self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None
+    ):
         """Converts a file from one type to another
 
         inpath: A path (on the local hard disk) to a file to be converted.
@@ -244,8 +246,9 @@ def main():
         help="The file type/extension of the output file (ex pdf). Required when using stdout",
     )
     parser.add_argument(
-        "--filter", default=None,
-        help="The export filter to use when converting. It is selected automatically if not specified."
+        "--filter",
+        default=None,
+        help="The export filter to use when converting. It is selected automatically if not specified.",
     )
     parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
@@ -264,11 +267,17 @@ def main():
         # Get data from stdin
         indata = sys.stdin.buffer.read()
         result = converter.convert(
-            indata=indata, outpath=args.outfile, convert_to=args.convert_to, filtername=args.filter
+            indata=indata,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
+            filtername=args.filter,
         )
     else:
         result = converter.convert(
-            inpath=args.infile, outpath=args.outfile, convert_to=args.convert_to, filtername=args.filter
+            inpath=args.infile,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
+            filtername=args.filter,
         )
 
     if args.outfile is None:
