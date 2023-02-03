@@ -86,15 +86,7 @@ class UnoConverter:
         )
 
     def find_filter(self, import_type, export_type):
-        # List export filters. You can only search on module, iflags and eflags,
-        # so the import and export types we have to test in a loop
-        export_filters = self.filter_service.createSubSetEnumerationByQuery(
-            "getSortedFilterList():iflags=2"
-        )
-
-        while export_filters.hasMoreElements():
-            # Filter DocumentService here
-            export_filter = prop2dict(export_filters.nextElement())
+        for export_filter in self.get_available_export_filters():
             if export_filter["DocumentService"] != import_type:
                 continue
             if export_filter["Type"] != export_type:
@@ -107,7 +99,23 @@ class UnoConverter:
         # No filter found
         return None
 
-    def convert(self, inpath=None, indata=None, outpath=None, convert_to=None):
+    def get_available_export_filters(self):
+        # List export filters. You can only search on module, iflags and eflags,
+        # so the import and export types we have to test in a loop
+        export_filters = self.filter_service.createSubSetEnumerationByQuery(
+            "getSortedFilterList():iflags=2"
+        )
+
+        while export_filters.hasMoreElements():
+            # Filter DocumentService here
+            yield prop2dict(export_filters.nextElement())
+
+    def get_available_filter_names(self):
+        return [filter["Name"] for filter in self.get_available_export_filters()]
+
+    def convert(
+        self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None
+    ):
         """Converts a file from one type to another
 
         inpath: A path (on the local hard disk) to a file to be converted.
@@ -118,6 +126,8 @@ class UnoConverter:
                  the content of the converted file will be returned as a byte string.
 
         convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
+
+        filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
         """
         if inpath is None and indata is None:
             raise RuntimeError("Nothing to convert.")
@@ -184,11 +194,18 @@ class UnoConverter:
                     f"Unknown export file type, unknown extension '{extension}'"
                 )
 
-            filtername = self.find_filter(import_type, export_type)
-            if filtername is None:
-                raise RuntimeError(
-                    f"Could not find an export filter from {import_type} to {export_type}"
-                )
+            if filtername is not None:
+                available_filter_names = self.get_available_filter_names()
+                if filtername not in available_filter_names:
+                    raise RuntimeError(
+                        f"'{filtername}' is not a valid filter name. Valid filters are {available_filter_names}"
+                    )
+            else:
+                filtername = self.find_filter(import_type, export_type)
+                if filtername is None:
+                    raise RuntimeError(
+                        f"Could not find an export filter from {import_type} to {export_type}"
+                    )
 
             logger.info(f"Exporting to {outpath}")
             logger.info(f"Using {filtername} export filter")
@@ -229,6 +246,11 @@ def main():
         help="The file type/extension of the output file (ex pdf). Required when using stdout",
     )
     parser.add_argument(
+        "--filter",
+        default=None,
+        help="The export filter to use when converting. It is selected automatically if not specified.",
+    )
+    parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
@@ -245,11 +267,17 @@ def main():
         # Get data from stdin
         indata = sys.stdin.buffer.read()
         result = converter.convert(
-            indata=indata, outpath=args.outfile, convert_to=args.convert_to
+            indata=indata,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
+            filtername=args.filter,
         )
     else:
         result = converter.convert(
-            inpath=args.infile, outpath=args.outfile, convert_to=args.convert_to
+            inpath=args.infile,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
+            filtername=args.filter,
         )
 
     if args.outfile is None:
