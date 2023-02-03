@@ -146,6 +146,6 @@ def test_invalid_explicit_export_filter_prints_available_filters(
         try:
             converter.main()
         except RuntimeError as err:
-            assert "Office Open XML Text" in f"{err}"
-            assert "writer8" in f"{err}"
-            assert "writer_pdf_Export" in f"{err}"
+            assert "Office Open XML Text" in err.args[0]
+            assert "writer8" in err.args[0]
+            assert "writer_pdf_Export" in err.args[0]
