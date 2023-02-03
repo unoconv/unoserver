@@ -1,4 +1,4 @@
-1.3 (unreleased)
+1.3 (2023-02-03)
 ----------------
 
 - Now works on Windows (although it's not officially supported).
