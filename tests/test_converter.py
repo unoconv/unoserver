@@ -44,7 +44,6 @@ def test_no_uno(monkeypatch):
 
 
 def test_wrong_arguments(monkeypatch):
-
     monkeypatch.setattr(converter.UnoConverter, "__init__", lambda self: None)
     conv = converter.UnoConverter()
 
