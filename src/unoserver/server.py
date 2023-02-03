@@ -19,7 +19,6 @@ class UnoServer:
         logger.info("Starting unoserver.")
 
         with tempfile.TemporaryDirectory() as tmpuserdir:
-
             connection = (
                 "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
                 % (self.interface, self.port)

@@ -39,7 +39,6 @@ class FakeStdio(io.BytesIO):
 
 @pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
 def test_stdin_stdout(server_fixture, monkeypatch, filename):
-
     with open(os.path.join(TEST_DOCS, filename), "rb") as infile:
         infile_stream = FakeStdio(infile.read())
 
