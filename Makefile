@@ -21,6 +21,8 @@ check: devenv
 	$(bin_dir)/black src/unoserver tests
 	$(bin_dir)/flake8 src/unoserver tests
 	$(bin_dir)/pyroma -d .
+	$(bin_dir)/check-manifest
+
 
 coverage: devenv
 	$(bin_dir)/coverage run -m unittest

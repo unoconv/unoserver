@@ -2,3 +2,6 @@ include *.rst
 include LICENSE
 recursive-include src *.py
 recursive-include tests *.py *.odt *.xlsx
+
+# added by check-manifest
+include Makefile
