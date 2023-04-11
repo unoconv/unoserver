@@ -12,7 +12,6 @@ import io
 import logging
 import os
 import sys
-from typing import Any
 import unohelper
 
 from com.sun.star.beans import PropertyValue
@@ -23,7 +22,7 @@ logger = logging.getLogger("unoserver")
 SFX_FILTER_IMPORT = 1
 SFX_FILTER_EXPORT = 2
 DOC_TYPES = {
-    "com.sun.star.text.TextDocument", # Only support comparing for writer
+    "com.sun.star.text.TextDocument",  # Only support comparing for writer
 }
 
 
@@ -122,7 +121,9 @@ class UnoComparer:
         # No filter found
         return None
 
-    def compare(self, inpath=None, indata=None, inOrgpath=None, outpath=None, convert_to=None):
+    def compare(
+        self, inpath=None, indata=None, inOrgpath=None, outpath=None, convert_to=None
+    ):
         """Compare two files and convert the result from one type to another.
 
         inpath: A path (on the local hard disk) to a file to be compared.
@@ -194,8 +195,16 @@ class UnoComparer:
             if not isComparable:
                 raise RuntimeError("Cannot compare two different type of document!")
 
-            dispatch_helper = self.service.createInstanceWithContext("com.sun.star.frame.DispatchHelper", self.context)
-            dispatch_helper.executeDispatch(document.getCurrentController().getFrame(), ".uno:CompareDocuments", "", 0, inputOrg_props)
+            dispatch_helper = self.service.createInstanceWithContext(
+                "com.sun.star.frame.DispatchHelper", self.context
+            )
+            dispatch_helper.executeDispatch(
+                document.getCurrentController().getFrame(),
+                ".uno:CompareDocuments",
+                "",
+                0,
+                inputOrg_props,
+            )
 
             if outpath:
                 export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
@@ -255,13 +264,16 @@ def main():
 
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
-        "infile", help="The path to the modified file to be compared with the original one (use - for stdin)"
+        "infile",
+        help="The path to the modified file to be compared with the original one (use - for stdin)",
     )
     parser.add_argument(
-        "inOrigfile", help="The path to the original file to be compared with the modified one (use - for stdin)"
+        "inOrigfile",
+        help="The path to the original file to be compared with the modified one (use - for stdin)",
     )
     parser.add_argument(
-        "outfile", help="The path to the result of the comparison and converted file (use - for stdout)"
+        "outfile",
+        help="The path to the result of the comparison and converted file (use - for stdout)",
     )
     parser.add_argument(
         "--convert-to",
@@ -284,11 +296,17 @@ def main():
         # Get data from stdin
         indata = sys.stdin.buffer.read()
         result = comparer.compare(
-            indata=indata, inOrgpath=args.inOrigfile, outpath=args.outfile, convert_to=args.convert_to
+            indata=indata,
+            inOrgpath=args.inOrigfile,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
         )
     else:
         result = comparer.compare(
-            inpath=args.infile, inOrgpath=args.inOrigfile, outpath=args.outfile, convert_to=args.convert_to
+            inpath=args.infile,
+            inOrgpath=args.inOrigfile,
+            outpath=args.outfile,
+            convert_to=args.convert_to,
         )
 
     if args.outfile is None:
