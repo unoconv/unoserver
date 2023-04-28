@@ -1,4 +1,4 @@
-1.4 (unreleased)
+1.4 (2023-04-28)
 ----------------
 
 - Added new feature: comparing documents and export the result to any format.
