@@ -6,6 +6,8 @@
 - You can run the new module as scripts, and also with ``python3 -m unoserver.comparer`` just
   like the ``python3 -m unoserver.server`` and ``python3 -m unoserver.converter``.
 
+- Porting feature from previous release: refresh of index in the Table of Contents
+
 
 1.3 (2023-02-03)
 ----------------
