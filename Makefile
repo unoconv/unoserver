@@ -30,7 +30,7 @@ coverage: devenv
 	$(bin_dir)/coverage report
 
 test: devenv
-	$(bin_dir)/python -bb -X dev -W ignore::UserWarning:setuptools.dist -m unittest --verbose
+	$(bin_dir)/pytest
 
 release: devenv
 	$(bin_dir)/fullrelease

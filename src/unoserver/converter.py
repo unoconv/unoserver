@@ -114,7 +114,7 @@ class UnoConverter:
         return [filter["Name"] for filter in self.get_available_export_filters()]
 
     def convert(
-        self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None
+        self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None, update_index=True
     ):
         """Converts a file from one type to another
 
@@ -128,6 +128,8 @@ class UnoConverter:
         convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
 
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
+
+        update_index: Updates the index before conversion
         """
         if inpath is None and indata is None:
             raise RuntimeError("Nothing to convert.")
@@ -167,21 +169,22 @@ class UnoConverter:
             import_path, "_default", 0, input_props
         )
 
-        # Update document indexes
-        for ii in range(2):
-            # At first, update Table-of-Contents.
-            # ToC grows, so page numbers grow too.
-            # On second turn, update page numbers in ToC.
-            try:
-                document.refresh()
-                indexes = document.getDocumentIndexes()
-            except AttributeError:
-                # The document doesn't implement the XRefreshable and/or
-                # XDocumentIndexesSupplier interfaces
-                break
-            else:
-                for i in range(0, indexes.getCount()):
-                    indexes.getByIndex(i).update()
+        if update_index:
+            # Update document indexes
+            for ii in range(2):
+                # At first, update Table-of-Contents.
+                # ToC grows, so page numbers grow too.
+                # On second turn, update page numbers in ToC.
+                try:
+                    document.refresh()
+                    indexes = document.getDocumentIndexes()
+                except AttributeError:
+                    # The document doesn't implement the XRefreshable and/or
+                    # XDocumentIndexesSupplier interfaces
+                    break
+                else:
+                    for i in range(0, indexes.getCount()):
+                        indexes.getByIndex(i).update()
 
         # Now do the conversion
         try:
@@ -267,11 +270,22 @@ def main():
         help="The export filter to use when converting. It is selected automatically if not specified.",
     )
     parser.add_argument(
+        "--update-index",
+        action='store_true',
+        help="Updes the indexes before conversion. Can be time consuming.",
+    )
+    parser.add_argument(
+        "--dont-update-index",
+        action='store_false',
+        dest="update_index",
+        help="Skip updating the indexes.",
+    )
+    parser.set_defaults(update_index=True)
+    parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
     args = parser.parse_args()
-
     converter = UnoConverter(args.interface, args.port)
 
     if args.outfile == "-":
@@ -287,6 +301,7 @@ def main():
             outpath=args.outfile,
             convert_to=args.convert_to,
             filtername=args.filter,
+            update_index=args.update_index,
         )
     else:
         result = converter.convert(
@@ -294,6 +309,7 @@ def main():
             outpath=args.outfile,
             convert_to=args.convert_to,
             filtername=args.filter,
+            update_index=args.update_index,
         )
 
     if args.outfile is None:

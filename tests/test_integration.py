@@ -3,6 +3,7 @@
 import io
 import os
 import pytest
+import re
 import sys
 import tempfile
 import time
@@ -148,3 +149,32 @@ def test_invalid_explicit_export_filter_prints_available_filters(
             assert "Office Open XML Text" in err.args[0]
             assert "writer8" in err.args[0]
             assert "writer_pdf_Export" in err.args[0]
+
+
+def test_update_index(server_fixture):
+    infile = os.path.join(TEST_DOCS, "index-with-fields.odt")
+
+    with tempfile.NamedTemporaryFile(suffix=".rtf") as outfile:
+        # Let Libreoffice write to the file and close it.
+        sys.argv = ["unoconverter", infile, outfile.name]
+        converter.main()
+
+        # We now open it to check it, we can't use the outfile object,
+        # it won't reflect the external changes.
+        with open(outfile.name, "rb") as testfile:
+            # The timestamp in Header 2 should appear exactly twice after update
+            matches = re.findall(b"13:18:27", testfile.read())
+            assert len(matches) == 2
+
+        with tempfile.NamedTemporaryFile(suffix=".rtf") as outfile:
+            # Let Libreoffice write to the file and close it.
+            sys.argv = ["unoconverter", "--dont-update-index", infile, outfile.name]
+            converter.main()
+
+            with open(outfile.name, "rb") as testfile:
+                # The timestamp in Header 2 should appear exactly once
+                matches = re.findall(b"13:18:27", testfile.read())
+                assert len(matches) == 1
+
+
+
