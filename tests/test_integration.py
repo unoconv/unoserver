@@ -175,6 +175,3 @@ def test_update_index(server_fixture):
                 # The timestamp in Header 2 should appear exactly once
                 matches = re.findall(b"13:18:27", testfile.read())
                 assert len(matches) == 1
-
-
-
