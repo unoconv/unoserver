@@ -114,7 +114,13 @@ class UnoConverter:
         return [filter["Name"] for filter in self.get_available_export_filters()]
 
     def convert(
-        self, inpath=None, indata=None, outpath=None, convert_to=None, filtername=None, update_index=True
+        self,
+        inpath=None,
+        indata=None,
+        outpath=None,
+        convert_to=None,
+        filtername=None,
+        update_index=True,
     ):
         """Converts a file from one type to another
 
@@ -271,12 +277,12 @@ def main():
     )
     parser.add_argument(
         "--update-index",
-        action='store_true',
+        action="store_true",
         help="Updes the indexes before conversion. Can be time consuming.",
     )
     parser.add_argument(
         "--dont-update-index",
-        action='store_false',
+        action="store_false",
         dest="update_index",
         help="Skip updating the indexes.",
     )
