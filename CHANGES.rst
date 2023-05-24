@@ -1,7 +1,7 @@
 1.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added support for passing in filter options with the --filter-options parameter.
 
 
 1.4 (2023-04-28)

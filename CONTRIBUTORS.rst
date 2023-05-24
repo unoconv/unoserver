@@ -7,3 +7,4 @@ Contributors
 * Åsmund Stavdahl, https://github.com/asmundstavdahl
 * Balázs Varga, https://github.com/bvarga91
 * Alessandro Filippini, https://github.com/AlePini
+* Dmitry Shachnev, https://github.com/mitya57
