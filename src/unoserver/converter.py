@@ -120,6 +120,7 @@ class UnoConverter:
         outpath=None,
         convert_to=None,
         filtername=None,
+        filter_options=[],
         update_index=True,
     ):
         """Converts a file from one type to another
@@ -235,6 +236,16 @@ class UnoConverter:
             logger.info(f"Exporting to {outpath}")
             logger.info(f"Using {filtername} export filter")
 
+            filter_data = []
+            for option in filter_options:
+                option_name, option_value = option.split("=", maxsplit=1)
+                if option_value == "false":
+                    option_value = False
+                elif option_value == "true":
+                    option_value = True
+                elif option_value.isdecimal():
+                    option_value = int(option_value)
+                filter_data.append(PropertyValue(Name=option_name, Value=option_value))
             output_props = (
                 PropertyValue(Name="FilterName", Value=filtername),
                 PropertyValue(Name="Overwrite", Value=True),
@@ -243,6 +254,15 @@ class UnoConverter:
                 output_stream = OutputStream()
                 output_props += (
                     PropertyValue(Name="OutputStream", Value=output_stream),
+                )
+            if filter_data:
+                output_props += (
+                    PropertyValue(
+                        Name="FilterData",
+                        Value=uno.Any(
+                            "[]com.sun.star.beans.PropertyValue", tuple(filter_data)
+                        ),
+                    ),
                 )
             document.storeToURL(export_path, output_props)
 
@@ -276,6 +296,12 @@ def main():
         help="The export filter to use when converting. It is selected automatically if not specified.",
     )
     parser.add_argument(
+        "--filter-options",
+        default=[],
+        action="append",
+        help="Options for the export filter, in name=value format. Use true/false for boolean values.",
+    )
+    parser.add_argument(
         "--update-index",
         action="store_true",
         help="Updes the indexes before conversion. Can be time consuming.",
@@ -307,6 +333,7 @@ def main():
             outpath=args.outfile,
             convert_to=args.convert_to,
             filtername=args.filter,
+            filter_options=args.filter_options,
             update_index=args.update_index,
         )
     else:
@@ -315,6 +342,7 @@ def main():
             outpath=args.outfile,
             convert_to=args.convert_to,
             filtername=args.filter,
+            filter_options=args.filter_options,
             update_index=args.update_index,
         )
 
