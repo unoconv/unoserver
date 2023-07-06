@@ -79,21 +79,17 @@ def main():
     parser.add_argument(
         "--user-installation",
         default=None,
-        help="The path to the LibreOffice user profile"
+        help="The path to the LibreOffice user profile",
     )
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
         user_installation = Path(tmpuserdir).as_uri()
-        
+
         if args.user_installation is not None:
             user_installation = Path(args.user_installation).as_uri()
 
-        server = UnoServer(
-            args.interface,
-            args.port,
-            user_installation
-        )
+        server = UnoServer(args.interface, args.port, user_installation)
 
         # If it's daemonized, this returns the process.
         # It returns 0 of getting killed in a normal way.
