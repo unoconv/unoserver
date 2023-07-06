@@ -84,9 +84,9 @@ def main():
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
-        if args.user_installation is None:
-            user_installation = Path(tmpuserdir).as_uri()
-        else:
+        user_installation = Path(tmpuserdir).as_uri()
+        
+        if args.user_installation is not None:
             user_installation = Path(args.user_installation).as_uri()
 
         server = UnoServer(
