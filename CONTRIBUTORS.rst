@@ -8,3 +8,4 @@ Contributors
 * Balázs Varga, https://github.com/bvarga91
 * Alessandro Filippini, https://github.com/AlePini
 * Dmitry Shachnev, https://github.com/mitya57
+* Socheat Sok, https://github.com/socheatsok78
