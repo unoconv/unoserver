@@ -21,7 +21,7 @@ def test_server_params(popen_mock):
             "--nologo",
             "--nofirststartwizard",
             "--norestore",
-            f"-env:UserInstallation={srv.tmp_uri}",
+            f"-env:UserInstallation={srv.user_installation}",
             "--accept=socket,host=127.0.0.1,port=2002,tcpNoDelay=1;urp;StarOffice.ComponentContext",
         ]
     )
