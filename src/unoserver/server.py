@@ -11,18 +11,10 @@ logger = logging.getLogger("unoserver")
 
 
 class UnoServer:
-    def __init__(self, interface="127.0.0.1", port="2002", user_installation=None):
+    def __init__(self, interface="127.0.0.1", port="2002"):
         self.interface = interface
         self.port = port
-
-        if user_installation is None:
-            with tempfile.TemporaryDirectory() as tmpuserdir:
-                # Store this as an attribute, it helps testing
-                # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-                self.tmp_uri = Path(tmpuserdir).as_uri()
-                self.user_installation = self.tmp_uri
-        else:
-            self.user_installation = Path(user_installation).as_uri()
+        self.user_installation = None
 
     def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
@@ -94,8 +86,16 @@ def main():
     server = UnoServer(
         args.interface,
         args.port,
-        args.user_installation,
     )
+
+    if args.user_installation is None:
+        with tempfile.TemporaryDirectory() as tmpuserdir:
+            # Store this as an attribute, it helps testing
+            # In windows if the path is invalid causes bootstrap.ini strange corrupt error
+            server.tmp_uri = Path(tmpuserdir).as_uri()
+            server.user_installation = server.tmp_uri
+    else:
+        server.user_installation = Path(args.user_installation).as_uri()
 
     # If it's daemonized, this returns the process.
     # It returns 0 of getting killed in a normal way.
