@@ -83,43 +83,41 @@ def main():
     )
     args = parser.parse_args()
 
-    server = UnoServer(
-        args.interface,
-        args.port,
-    )
+    with tempfile.TemporaryDirectory() as tmpuserdir:
+        if args.user_installation is None:
+            user_installation = Path(tmpuserdir).as_uri()
+        else:
+            user_installation = Path(args.user_installation).as_uri()
 
-    if args.user_installation is None:
-        with tempfile.TemporaryDirectory() as tmpuserdir:
-            # Store this as an attribute, it helps testing
-            # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-            server.tmp_uri = Path(tmpuserdir).as_uri()
-            server.user_installation = server.tmp_uri
-    else:
-        server.user_installation = Path(args.user_installation).as_uri()
+        server = UnoServer(
+            args.interface,
+            args.port,
+            user_installation
+        )
 
-    # If it's daemonized, this returns the process.
-    # It returns 0 of getting killed in a normal way.
-    # Otherwise it returns 1 after the process exits.
-    process = server.start(executable=args.executable)
-    pid = process.pid
+        # If it's daemonized, this returns the process.
+        # It returns 0 of getting killed in a normal way.
+        # Otherwise it returns 1 after the process exits.
+        process = server.start(executable=args.executable)
+        pid = process.pid
 
-    logger.info(f"Server PID: {pid}")
+        logger.info(f"Server PID: {pid}")
 
-    if args.daemon:
-        return process
+        if args.daemon:
+            return process
 
-    process.wait()
+        process.wait()
 
-    try:
-        # Make sure it's really dead
-        os.kill(pid, 0)
-        # It was killed
-        return 0
-    except OSError as e:
-        if e.errno == 3:
-            # All good, it was already dead.
+        try:
+            # Make sure it's really dead
+            os.kill(pid, 0)
+            # It was killed
             return 0
-        raise
+        except OSError as e:
+            if e.errno == 3:
+                # All good, it was already dead.
+                return 0
+            raise
 
 
 if __name__ == "__main__":
