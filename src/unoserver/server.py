@@ -11,10 +11,10 @@ logger = logging.getLogger("unoserver")
 
 
 class UnoServer:
-    def __init__(self, interface="127.0.0.1", port="2002"):
+    def __init__(self, interface="127.0.0.1", port="2002", user_installation=None):
         self.interface = interface
         self.port = port
-        self.user_installation = None
+        self.user_installation = user_installation
 
     def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
