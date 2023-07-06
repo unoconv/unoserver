@@ -22,7 +22,7 @@ class UnoServer:
                 tmp_uri = Path(tmpuserdir).as_uri()
                 self.user_installation = tmp_uri
         else:
-            self.user_installation = user_installation
+            self.user_installation = Path(user_installation).as_uri()
 
     def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
