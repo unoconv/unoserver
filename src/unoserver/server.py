@@ -19,8 +19,8 @@ class UnoServer:
             with tempfile.TemporaryDirectory() as tmpuserdir:
                 # Store this as an attribute, it helps testing
                 # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-                tmp_uri = Path(tmpuserdir).as_uri()
-                self.user_installation = tmp_uri
+                self.tmp_uri = Path(tmpuserdir).as_uri()
+                self.user_installation = self.tmp_uri
         else:
             self.user_installation = Path(user_installation).as_uri()
 
