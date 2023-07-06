@@ -27,51 +27,46 @@ class UnoServer:
     def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
 
-        with tempfile.TemporaryDirectory() as tmpuserdir:
-            connection = (
-                "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-                % (self.interface, self.port)
-            )
+        connection = (
+            "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
+            % (self.interface, self.port)
+        )
 
-            # Store this as an attribute, it helps testing
-            # In windows if the path is invalid causes bootstrap.ini strange corrupt error
-            self.tmp_uri = Path(tmpuserdir).as_uri()
+        # I think only --headless and --norestore are needed for
+        # command line usage, but let's add everything to be safe.
+        cmd = [
+            executable,
+            "--headless",
+            "--invisible",
+            "--nocrashreport",
+            "--nodefault",
+            "--nologo",
+            "--nofirststartwizard",
+            "--norestore",
+            f"-env:UserInstallation={self.user_installation}",
+            f"--accept={connection}",
+        ]
 
-            # I think only --headless and --norestore are needed for
-            # command line usage, but let's add everything to be safe.
-            cmd = [
-                executable,
-                "--headless",
-                "--invisible",
-                "--nocrashreport",
-                "--nodefault",
-                "--nologo",
-                "--nofirststartwizard",
-                "--norestore",
-                f"-env:UserInstallation={self.tmp_uri}",
-                f"--accept={connection}",
-            ]
+        logger.info("Command: " + " ".join(cmd))
+        process = subprocess.Popen(cmd)
 
-            logger.info("Command: " + " ".join(cmd))
-            process = subprocess.Popen(cmd)
+        def signal_handler(signum, frame):
+            logger.info("Sending signal to LibreOffice")
+            try:
+                process.send_signal(signum)
+            except ProcessLookupError as e:
+                # 3 means the process is already dead
+                if e.errno != 3:
+                    raise
 
-            def signal_handler(signum, frame):
-                logger.info("Sending signal to LibreOffice")
-                try:
-                    process.send_signal(signum)
-                except ProcessLookupError as e:
-                    # 3 means the process is already dead
-                    if e.errno != 3:
-                        raise
+        signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
 
-            signal.signal(signal.SIGTERM, signal_handler)
-            signal.signal(signal.SIGINT, signal_handler)
+        # Signal SIGHUP is available only in Unix systems
+        if platform.system() != "Windows":
+            signal.signal(signal.SIGHUP, signal_handler)
 
-            # Signal SIGHUP is available only in Unix systems
-            if platform.system() != "Windows":
-                signal.signal(signal.SIGHUP, signal_handler)
-
-            return process
+        return process
 
 
 def main():
