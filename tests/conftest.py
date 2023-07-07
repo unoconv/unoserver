@@ -5,6 +5,7 @@ from pathlib import Path
 
 from unoserver import server
 
+
 @pytest.fixture(scope="session")
 def server_fixture():
     with tempfile.TemporaryDirectory() as tmpuserdir:
