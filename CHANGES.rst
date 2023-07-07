@@ -2,6 +2,7 @@
 ----------------
 
 - Added support for passing in filter options with the --filter-options parameter.
+- Add `--user-installation` flag to `unoserver`
 
 
 1.4 (2023-04-28)

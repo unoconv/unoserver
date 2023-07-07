@@ -95,6 +95,7 @@ Unoserver
 * `--port`: The port used by the server, defaults to "2002"
 * `--daemon`:  Deamonize the server
 * `--executable`: The path to the LibreOffice executable
+* `--user-installation`: The path to the LibreOffice user profile, defaults to a dynamically created temporary directory
 
 Unoconvert
 ~~~~~~~~~~
