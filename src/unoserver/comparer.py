@@ -7,11 +7,9 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
-import argparse
 import io
 import logging
 import os
-import sys
 import unohelper
 import warnings
 

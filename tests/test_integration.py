@@ -4,11 +4,13 @@ import io
 import os
 import pytest
 import re
+import subprocess
 import sys
 import tempfile
 import time
 
-from unoserver import converter, server
+from xmlrpc.client import Fault
+from unoserver import client
 
 
 TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents")
@@ -21,7 +23,7 @@ def test_pdf_conversion(server_fixture, filename):
     with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
         # Let Libreoffice write to the file and close it.
         sys.argv = ["unoconverter", infile, outfile.name]
-        converter.main()
+        client.converter_main()
 
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
@@ -49,7 +51,7 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
     monkeypatch.setattr("sys.stdout", outfile_stream)
 
     sys.argv = ["unoconverter", "-", "-", "--convert-to", "pdf"]
-    converter.main()
+    client.converter_main()
 
     outfile_stream.seek(0)
     start = outfile_stream.readline()
@@ -57,7 +59,7 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
 
 
 def test_csv_conversion(server_fixture):
-    conv = converter.UnoConverter()
+    conv = client.UnoConverter()
     infile = os.path.join(TEST_DOCS, "simple.xlsx")
 
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
@@ -73,12 +75,12 @@ def test_csv_conversion(server_fixture):
 
 
 def test_impossible_conversion(server_fixture):
-    conv = converter.UnoConverter()
+    conv = client.UnoConverter()
     infile = os.path.join(TEST_DOCS, "simple.odt")
 
     with tempfile.NamedTemporaryFile(suffix=".xls") as outfile:
         # Let Libreoffice write to the file and close it.
-        with pytest.raises(RuntimeError) as e:
+        with pytest.raises(Fault) as e:
             conv.convert(inpath=infile, outpath=outfile.name)
             assert "Could not find an export filter" in e
 
@@ -86,20 +88,27 @@ def test_impossible_conversion(server_fixture):
 def test_multiple_servers(server_fixture):
     # The server fixture should already have started a server.
     # Make sure we can start a second one.
-    sys.argv = ["unoserver", "--daemon"]
-    process = server.main()
+    cmd = ["unoserver", "--uno-port=2102", "--port=2103"]
+    process = subprocess.Popen(cmd)
     try:
         # Wait for it to start
         time.sleep(5)
         # Make sure the process is still running, meaning return_code is None
         assert process.returncode is None
+
+        # Make a conversion
+        conv = client.UnoConverter(port="2103")
+        infile = os.path.join(TEST_DOCS, "simple.odt")
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+            conv.convert(inpath=infile, outpath=outfile.name)
+
     finally:
         # Now kill the process
         process.terminate()
         # Wait for it to terminate
         process.wait()
         # And verify that it was killed
-        assert process.returncode == 255
+        assert process.returncode == 0
 
 
 def test_unknown_outfile_type(server_fixture):
@@ -108,8 +117,9 @@ def test_unknown_outfile_type(server_fixture):
     with tempfile.NamedTemporaryFile(suffix=".bog") as outfile:
         sys.argv = ["unoconverter", infile, outfile.name]
         # Type detection should fail, as it's not a .doc file:
-        with pytest.raises(RuntimeError):
-            converter.main()
+        with pytest.raises(Fault) as e:
+            client.converter_main()
+        assert "Unknown export file type" in e.value.faultString
 
 
 @pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
@@ -125,7 +135,7 @@ def test_explicit_export_filter(server_fixture, filename):
             infile,
             outfile.name,
         ]
-        converter.main()
+        client.converter_main()
 
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
@@ -144,11 +154,11 @@ def test_invalid_explicit_export_filter_prints_available_filters(
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
         sys.argv = ["unoconverter", "--filter", "asdasdasd", infile, outfile.name]
         try:
-            converter.main()
-        except RuntimeError as err:
-            assert "Office Open XML Text" in err.args[0]
-            assert "writer8" in err.args[0]
-            assert "writer_pdf_Export" in err.args[0]
+            client.converter_main()
+        except Fault as err:
+            assert "Office Open XML Text" in err.faultString
+            assert "writer8" in err.faultString
+            assert "writer_pdf_Export" in err.faultString
 
 
 def test_update_index(server_fixture):
@@ -157,7 +167,7 @@ def test_update_index(server_fixture):
     with tempfile.NamedTemporaryFile(suffix=".rtf") as outfile:
         # Let Libreoffice write to the file and close it.
         sys.argv = ["unoconverter", infile, outfile.name]
-        converter.main()
+        client.converter_main()
 
         # We now open it to check it, we can't use the outfile object,
         # it won't reflect the external changes.
@@ -169,7 +179,7 @@ def test_update_index(server_fixture):
         with tempfile.NamedTemporaryFile(suffix=".rtf") as outfile:
             # Let Libreoffice write to the file and close it.
             sys.argv = ["unoconverter", "--dont-update-index", infile, outfile.name]
-            converter.main()
+            client.converter_main()
 
             with open(outfile.name, "rb") as testfile:
                 # The timestamp in Header 2 should appear exactly once
