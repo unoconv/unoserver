@@ -81,6 +81,13 @@ def main():
         default=None,
         help="The path to the LibreOffice user profile",
     )
+    parser.add_argument(
+        "--libreoffice-pid-file",
+        "-p",
+        default=None,
+        help="If set, unoserver will write the Libreoffice PID to this file. If started "
+        "in daemon mode, the file will not be deleted when unoserver exits.",
+    )
     args = parser.parse_args()
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
@@ -99,10 +106,18 @@ def main():
 
         logger.info(f"Server PID: {pid}")
 
+        if args.libreoffice_pid_file:
+            with open(args.libreoffice_pid_file, "wt") as upf:
+                upf.write(f"{pid}")
+
         if args.daemon:
             return process
 
         process.wait()
+
+        if args.libreoffice_pid_file:
+            # Remove the PID file
+            os.unlink(args.libreoffice_pid_file)
 
         try:
             # Make sure it's really dead
