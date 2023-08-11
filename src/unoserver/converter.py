@@ -7,11 +7,9 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
-import argparse
 import io
 import logging
 import os
-import sys
 import unohelper
 
 from pathlib import Path
@@ -273,83 +271,3 @@ class UnoConverter:
             return output_stream.buffer.getvalue()
         else:
             return None
-
-
-def main():
-    logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
-
-    parser = argparse.ArgumentParser("unoconvert")
-    parser.add_argument(
-        "infile", help="The path to the file to be converted (use - for stdin)"
-    )
-    parser.add_argument(
-        "outfile", help="The path to the converted file (use - for stdout)"
-    )
-    parser.add_argument(
-        "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
-    )
-    parser.add_argument(
-        "--filter",
-        default=None,
-        help="The export filter to use when converting. It is selected automatically if not specified.",
-    )
-    parser.add_argument(
-        "--filter-options",
-        default=[],
-        action="append",
-        help="Options for the export filter, in name=value format. Use true/false for boolean values.",
-    )
-    parser.add_argument(
-        "--update-index",
-        action="store_true",
-        help="Updes the indexes before conversion. Can be time consuming.",
-    )
-    parser.add_argument(
-        "--dont-update-index",
-        action="store_false",
-        dest="update_index",
-        help="Skip updating the indexes.",
-    )
-    parser.set_defaults(update_index=True)
-    parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
-    )
-    parser.add_argument("--port", default="2002", help="The port used by the server")
-    args = parser.parse_args()
-    converter = UnoConverter(args.interface, args.port)
-
-    if args.outfile == "-":
-        # Set outfile to None, to get the data returned from the function,
-        # instead of written to a file.
-        args.outfile = None
-
-    if args.infile == "-":
-        # Get data from stdin
-        indata = sys.stdin.buffer.read()
-        result = converter.convert(
-            indata=indata,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
-    else:
-        result = converter.convert(
-            inpath=args.infile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
-
-    if args.outfile is None:
-        # Pipe result to stdout
-        sys.stdout.buffer.write(result)
-
-
-if __name__ == "__main__":
-    main()

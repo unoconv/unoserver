@@ -7,11 +7,9 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
-import argparse
 import io
 import logging
 import os
-import sys
 import unohelper
 
 from com.sun.star.beans import PropertyValue
@@ -256,63 +254,3 @@ class UnoComparer:
             return output_stream.buffer.getvalue()
         else:
             return None
-
-
-def main():
-    logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
-
-    parser = argparse.ArgumentParser("unocompare")
-    parser.add_argument(
-        "infile",
-        help="The path to the modified file to be compared with the original one (use - for stdin)",
-    )
-    parser.add_argument(
-        "inOrigfile",
-        help="The path to the original file to be compared with the modified one (use - for stdin)",
-    )
-    parser.add_argument(
-        "outfile",
-        help="The path to the result of the comparison and converted file (use - for stdout)",
-    )
-    parser.add_argument(
-        "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
-    )
-    parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
-    )
-    parser.add_argument("--port", default="2002", help="The port used by the server")
-    args = parser.parse_args()
-
-    comparer = UnoComparer(args.interface, args.port)
-
-    if args.outfile == "-":
-        # Set outfile to None, to get the data returned from the function,
-        # instead of written to a file.
-        args.outfile = None
-
-    if args.infile == "-":
-        # Get data from stdin
-        indata = sys.stdin.buffer.read()
-        result = comparer.compare(
-            indata=indata,
-            inOrgpath=args.inOrigfile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-        )
-    else:
-        result = comparer.compare(
-            inpath=args.infile,
-            inOrgpath=args.inOrigfile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-        )
-
-    if args.outfile is None:
-        # Pipe result to stdout
-        sys.stdout.buffer.write(result)
-
-
-if __name__ == "__main__":
-    main()
