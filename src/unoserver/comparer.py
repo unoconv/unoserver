@@ -54,6 +54,11 @@ class OutputStream(unohelper.Base, XOutputStream):
 
 
 class UnoComparer:
+    """The class that performs the comparison
+
+    Don't use this directly, instead use the client.UnoComparer.
+    """
+
     def __init__(self, interface="127.0.0.1", port="2002"):
         logger.info("Starting UnoComparer.")
 
@@ -120,7 +125,13 @@ class UnoComparer:
         return None
 
     def compare(
-        self, inpath=None, indata=None, inOrgpath=None, outpath=None, convert_to=None
+        self,
+        oldpath=None,
+        olddata=None,
+        newpath=None,
+        newdata=None,
+        outpath=None,
+        filetype=None,
     ):
         """Compare two files and convert the result from one type to another.
 
@@ -132,63 +143,66 @@ class UnoComparer:
         outpath: A path (on the local hard disk) to store the result, or None, in which case
                  the content of the converted file will be returned as a byte string.
 
-        convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
+        filetype: The extension of the desired file type, ie "pdf", "xlsx", etc.
         """
-        if inpath is None and indata is None:
-            raise RuntimeError("Nothing to be compared.")
+        new_props = (PropertyValue(Name="Hidden", Value=True),)
 
-        if inpath is not None and indata is not None:
-            raise RuntimeError("You can only pass in inpath or indata, not both.")
-
-        if inOrgpath is None:
-            raise RuntimeError("Nothing to be compared with.")
-
-        if outpath is None and convert_to is None:
-            raise RuntimeError(
-                "If you don't specify an output path, you must specify a file-type."
-            )
-
-        input_props = (PropertyValue(Name="Hidden", Value=True),)
-
-        if inpath:
+        if newpath:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
             # exceptions are completely useless!
 
             # Load the document
-            import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
+            logger.info(f"Opening file {newpath}")
+            newpath = uno.systemPathToFileUrl(os.path.abspath(newpath))
             # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-            logger.info(f"Opening file {inpath}")
 
-        elif indata:
+        elif newdata:
             # The document content is passed in as a byte string
-            input_stream = self.service.createInstanceWithContext(
+            new_stream = self.service.createInstanceWithContext(
                 "com.sun.star.io.SequenceInputStream", self.context
             )
-            input_stream.initialize((uno.ByteSequence(indata),))
-            input_props += (PropertyValue(Name="InputStream", Value=input_stream),)
-            import_path = "private:stream"
+            new_stream.initialize((uno.ByteSequence(newdata),))
+            new_props += (PropertyValue(Name="InputStream", Value=new_stream),)
+            newpath = "private:stream"
 
-        document = self.desktop.loadComponentFromURL(
-            import_path, "_blank", 0, input_props
+        new_document = self.desktop.loadComponentFromURL(
+            newpath, "_blank", 0, new_props
         )
+        new_type = get_doc_type(new_document)
 
-        # TODO: Verify that inOrgpath exists and is openable, and that outdir exists, because uno's
-        # exceptions are completely useless!
+        old_props = (PropertyValue(Name="Hidden", Value=True),)
 
-        # Load the original document
-        importOrg_path = uno.systemPathToFileUrl(os.path.abspath(inOrgpath))
-        inputOrg_props = (PropertyValue(Name="URL", Value=importOrg_path),)
-        inputOrg_props += (PropertyValue(Name="NoAcceptDialog", Value=True),)
-        logger.info(f"Opening original file {inOrgpath}")
+        if oldpath:
+            # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
+            # exceptions are completely useless!
+
+            # Load the document
+            logger.info(f"Opening file {oldpath}")
+            oldpath = uno.systemPathToFileUrl(os.path.abspath(oldpath))
+            old_props += (PropertyValue(Name="URL", Value=oldpath),)
+            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
+            old_type = self.type_service.queryTypeByURL(oldpath)
+
+        elif olddata:
+            # The document content is passed in as a byte string
+            old_stream = self.service.createInstanceWithContext(
+                "com.sun.star.io.SequenceInputStream", self.context
+            )
+            old_stream.initialize((uno.ByteSequence(newdata),))
+            old_props += (PropertyValue(Name="InputStream", Value=new_stream),)
+            old_props += (PropertyValue(Name="URL", Value="private:stream"),)
+            old_type = self.type_service.queryTypeByDescriptor(old_props, False)[0]
+
+        old_props += (PropertyValue(Name="NoAcceptDialog", Value=True),)
+
+        logger.info(f"Opening original file {oldpath}")
 
         # Now do the comparison, then the conversion
         try:
             # Figure out document type of import file:
-            import_type = get_doc_type(document)
             # Figure out document type of original import file:
-            importOrg_type = self.type_service.queryTypeByURL(importOrg_path)
             # check that the two type is same
-            isComparable = self.is_comparable(import_type, importOrg_type)
+            isComparable = self.is_comparable(new_type, old_type)
 
             if not isComparable:
                 raise RuntimeError("Cannot compare two different type of document!")
@@ -197,11 +211,11 @@ class UnoComparer:
                 "com.sun.star.frame.DispatchHelper", self.context
             )
             dispatch_helper.executeDispatch(
-                document.getCurrentController().getFrame(),
+                new_document.getCurrentController().getFrame(),
                 ".uno:CompareDocuments",
                 "",
                 0,
-                inputOrg_props,
+                old_props,
             )
 
             if outpath:
@@ -210,26 +224,26 @@ class UnoComparer:
                 export_path = "private:stream"
 
             # Figure out the output type:
-            if convert_to:
+            if filetype:
                 export_type = self.type_service.queryTypeByURL(
-                    f"file:///dummy.{convert_to}"
+                    f"file:///dummy.{filetype}"
                 )
             else:
                 export_type = self.type_service.queryTypeByURL(export_path)
 
             if not export_type:
-                if convert_to:
-                    extension = convert_to
+                if filetype:
+                    extension = filetype
                 else:
                     extension = os.path.splitext(outpath)[-1]
                 raise RuntimeError(
                     f"Unknown export file type, unknown extension '{extension}'"
                 )
 
-            filtername = self.find_filter(import_type, export_type)
+            filtername = self.find_filter(new_type, export_type)
             if filtername is None:
                 raise RuntimeError(
-                    f"Could not find an export filter from {import_type} to {export_type}"
+                    f"Could not find an export filter from {new_type} to {export_type}"
                 )
 
             logger.info(f"Exporting to {outpath}")
@@ -244,11 +258,11 @@ class UnoComparer:
                 output_props += (
                     PropertyValue(Name="OutputStream", Value=output_stream),
                 )
-            document.storeToURL(export_path, output_props)
-            document.dispose()
+            new_document.storeToURL(export_path, output_props)
+            new_document.dispose()
 
         finally:
-            document.close(True)
+            new_document.close(True)
 
         if outpath is None:
             return output_stream.buffer.getvalue()

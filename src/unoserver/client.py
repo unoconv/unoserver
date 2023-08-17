@@ -21,7 +21,9 @@ DOC_TYPES = {
 }
 
 
-class UnoConverter:
+class UnoClient:
+    """An RPC client for Unoserver"""
+
     def __init__(self, server="127.0.0.1", port="2003"):
         self.server = server
         self.port = port
@@ -89,6 +91,79 @@ class UnoConverter:
                     # Pipe result to stdout
                     sys.stdout.buffer.write(result.data)
 
+    def compare(
+        self,
+        oldpath=None,
+        olddata=None,
+        newpath=None,
+        newdata=None,
+        outpath=None,
+        filetype=None,
+    ):
+        """Compare two files and convert the result from one type to another.
+
+        newpath: A path (on the local hard disk) to a file to be compared.
+
+        newdata: A byte string containing the file content to be compared.
+
+        oldpath: A path (on the local hard disk) to another file to be compared.
+
+        olddata: A byte string containing the other file content to be compared.
+
+        outpath: A path (on the local hard disk) to store the result, or None, in which case
+                 the content of the converted file will be returned as a byte string.
+
+        convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
+        """
+        if (newpath is None and newdata is None) or (
+            oldpath is None and olddata is None
+        ):
+            raise RuntimeError(
+                "Nothing to be compared. You mast pass in newpath or newdata and oldpath or olddata."
+            )
+
+        if newpath is not None and newdata is not None:
+            raise RuntimeError("You can only pass in newpath or newdata, not both.")
+
+        if oldpath is not None and olddata is not None:
+            raise RuntimeError("You can only pass in oldpath or olddata, not both.")
+
+        if outpath is None and filetype is None:
+            raise RuntimeError(
+                "If you don't specify an resulting filepath, you must specify a file-type."
+            )
+        elif filetype is None:
+            filetype = os.path.splitext(outpath)[-1].strip(os.path.extsep)
+
+        if self.server not in ("127.0.0.1", "localhost"):
+            if oldpath:
+                with open(oldpath, "rb") as infile:
+                    olddata = infile.read()
+                    oldpath = None
+
+            if newpath:
+                with open(newpath, "rb") as infile:
+                    newdata = infile.read()
+                    newpath = None
+
+        with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            result = proxy.compare(
+                oldpath,
+                olddata,
+                newpath,
+                newdata,
+                outpath if self.server in ("127.0.0.1", "localhost") else None,
+                filetype,
+            )
+            if result is not None:
+                # We got the file back over xmlrpc:
+                if outpath:
+                    with open(outpath, "wb") as outfile:
+                        outfile.write(result.data)
+                else:
+                    # Pipe result to stdout
+                    sys.stdout.buffer.write(result.data)
+
 
 def converter_main():
     logging.basicConfig()
@@ -133,7 +208,7 @@ def converter_main():
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
     args = parser.parse_args()
-    converter = UnoConverter(args.interface, args.port)
+    client = UnoClient(args.interface, args.port)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,
@@ -143,7 +218,7 @@ def converter_main():
     if args.infile == "-":
         # Get data from stdin
         indata = sys.stdin.buffer.read()
-        result = converter.convert(
+        client.convert(
             indata=indata,
             outpath=args.outfile,
             convert_to=args.convert_to,
@@ -152,7 +227,7 @@ def converter_main():
             update_index=args.update_index,
         )
     else:
-        result = converter.convert(
+        client.convert(
             inpath=args.infile,
             outpath=args.outfile,
             convert_to=args.convert_to,
@@ -160,65 +235,6 @@ def converter_main():
             filter_options=args.filter_options,
             update_index=args.update_index,
         )
-
-    return result
-
-
-class UnoComparer:
-    def __init__(self, server="127.0.0.1", port="2003"):
-        self.server = server
-        self.port = port
-
-    def compare(
-        self, inpath=None, indata=None, inOrgpath=None, outpath=None, convert_to=None
-    ):
-        """Compare two files and convert the result from one type to another.
-
-        inpath: A path (on the local hard disk) to a file to be compared.
-        inOrgpath: A path (on the local hard disk) to another file to be compared.
-
-        indata: A byte string containing the file content to be compared.
-
-        outpath: A path (on the local hard disk) to store the result, or None, in which case
-                 the content of the converted file will be returned as a byte string.
-
-        convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
-        """
-        if inpath is None and indata is None:
-            raise RuntimeError("Nothing to convert.")
-
-        if inpath is not None and indata is not None:
-            raise RuntimeError("You can only pass in inpath or indata, not both.")
-
-        if convert_to is None:
-            if outpath is None:
-                raise RuntimeError(
-                    "If you don't specify an output path, you must specify a file-type."
-                )
-            else:
-                convert_to = os.path.splitext(outpath)[-1].strip(os.path.extsep)
-
-        if inpath and self.server not in ("127.0.0.1", "localhost"):
-            with open(inpath, "rb") as infile:
-                indata = infile.read()
-                inpath = None
-
-        with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
-            result = proxy.compare(
-                inpath,
-                indata,
-                inOrgpath,
-                outpath if self.server in ("127.0.0.1", "localhost") else None,
-                convert_to,
-            )
-            if result is not None:
-                # We got the file back over xmlrpc:
-                if outpath:
-                    with open(outpath, "wb") as outfile:
-                        outfile.write(result.data)
-                else:
-                    # Pipe result to stdout
-                    sys.stdout.buffer.write(result.data)
 
 
 def comparer_main():
@@ -227,20 +243,20 @@ def comparer_main():
 
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
-        "infile",
-        help="The path to the modified file to be compared with the original one (use - for stdin)",
+        "oldfile",
+        help="The path to the original file to be compared with the modified one (use - for stdin)",
     )
     parser.add_argument(
-        "inOrigfile",
-        help="The path to the original file to be compared with the modified one (use - for stdin)",
+        "newfile",
+        help="The path to the modified file to be compared with the original one (use - for stdin)",
     )
     parser.add_argument(
         "outfile",
         help="The path to the result of the comparison and converted file (use - for stdout)",
     )
     parser.add_argument(
-        "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
+        "--file-type",
+        help="The file type/extension of the result file (ex pdf). Required when using stdout",
     )
     parser.add_argument(
         "--interface", default="127.0.0.1", help="The interface used by the server"
@@ -248,30 +264,26 @@ def comparer_main():
     parser.add_argument("--port", default="2003", help="The port used by the server")
     args = parser.parse_args()
 
-    comparer = UnoComparer(args.interface, args.port)
+    client = UnoClient(args.interface, args.port)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,
         # instead of written to a file.
         args.outfile = None
 
-    if args.infile == "-":
+    if args.oldfile == "-":
         # Get data from stdin
         indata = sys.stdin.buffer.read()
-        result = comparer.compare(
-            indata=indata,
-            inOrgpath=args.inOrigfile,
+        client.compare(
+            olddata=indata,
+            newpath=args.newfile,
             outpath=args.outfile,
-            convert_to=args.convert_to,
+            filetype=args.file_type,
         )
     else:
-        result = comparer.compare(
-            inpath=args.infile,
-            inOrgpath=args.inOrigfile,
+        client.compare(
+            oldpath=args.oldfile,
+            newpath=args.newfile,
             outpath=args.outfile,
-            convert_to=args.convert_to,
+            filetype=args.file_type,
         )
-
-    if args.outfile is None:
-        # Pipe result to stdout
-        sys.stdout.buffer.write(result)
