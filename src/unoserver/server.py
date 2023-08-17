@@ -118,14 +118,23 @@ class UnoServer:
 
             @server.register_function
             def compare(
-                inpath=None, indata=None, inOrgpath=None, outpath=None, convert_to=None
+                oldpath=None,
+                olddata=None,
+                newpath=None,
+                newdata=None,
+                outpath=None,
+                filetype=None,
             ):
-                if indata is not None:
-                    indata = indata.data
+                if olddata is not None:
+                    olddata = olddata.data
+                if newdata is not None:
+                    newdata = newdata.data
                 comp = comparer.UnoComparer(
                     interface=self.uno_interface, port=self.uno_port
                 )
-                result = comp.compare(inpath, indata, inOrgpath, outpath, convert_to)
+                result = comp.compare(
+                    oldpath, olddata, newpath, newdata, outpath, filetype
+                )
                 return result
 
             server.serve_forever()

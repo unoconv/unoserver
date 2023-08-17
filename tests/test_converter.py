@@ -4,7 +4,7 @@ import pytest
 import sys
 import uno
 
-from unoserver import converter
+from unoserver import converter, client
 
 TEST_DOCS = os.path.join(os.path.abspath(os.path.split(__file__)[0]), "documents")
 
@@ -44,8 +44,7 @@ def test_no_uno(monkeypatch):
 
 
 def test_wrong_arguments(monkeypatch):
-    monkeypatch.setattr(converter.UnoConverter, "__init__", lambda self: None)
-    conv = converter.UnoConverter()
+    conv = client.UnoClient()
 
     with pytest.raises(RuntimeError):
         # You need to pass in an infile, or data

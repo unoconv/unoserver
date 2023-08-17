@@ -63,6 +63,11 @@ class OutputStream(unohelper.Base, XOutputStream):
 
 
 class UnoConverter:
+    """The class that performs the conversion
+
+    Don't use this directly, instead use the client.UnoConverter.
+    """
+
     def __init__(self, interface="127.0.0.1", port="2002"):
         logger.info("Starting unoconverter.")
 
@@ -136,17 +141,9 @@ class UnoConverter:
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
 
         update_index: Updates the index before conversion
+
+        You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
-        if inpath is None and indata is None:
-            raise RuntimeError("Nothing to convert.")
-
-        if inpath is not None and indata is not None:
-            raise RuntimeError("You can only pass in inpath or indata, not both.")
-
-        if outpath is None and convert_to is None:
-            raise RuntimeError(
-                "If you don't specify an output path, you must specify a file-type."
-            )
 
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
 
@@ -158,17 +155,17 @@ class UnoConverter:
                 raise RuntimeError(f"Path {inpath} does not exist.")
 
             # Load the document
+            logger.info(f"Opening {inpath} for input")
             import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
-            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-            logger.info(f"Opening {inpath}")
 
         elif indata:
             # The document content is passed in as a byte string
-            input_stream = self.service.createInstanceWithContext(
+            logger.info("Opening private:stream for input")
+            old_stream = self.service.createInstanceWithContext(
                 "com.sun.star.io.SequenceInputStream", self.context
             )
-            input_stream.initialize((uno.ByteSequence(indata),))
-            input_props += (PropertyValue(Name="InputStream", Value=input_stream),)
+            old_stream.initialize((uno.ByteSequence(indata),))
+            input_props += (PropertyValue(Name="InputStream", Value=old_stream),)
             import_path = "private:stream"
 
         document = self.desktop.loadComponentFromURL(

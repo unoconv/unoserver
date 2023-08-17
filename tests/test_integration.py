@@ -4,6 +4,7 @@ import io
 import os
 import pytest
 import re
+import socket
 import subprocess
 import sys
 import tempfile
@@ -59,7 +60,7 @@ def test_stdin_stdout(server_fixture, monkeypatch, filename):
 
 
 def test_csv_conversion(server_fixture):
-    conv = client.UnoConverter()
+    conv = client.UnoClient()
     infile = os.path.join(TEST_DOCS, "simple.xlsx")
 
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
@@ -75,7 +76,7 @@ def test_csv_conversion(server_fixture):
 
 
 def test_impossible_conversion(server_fixture):
-    conv = client.UnoConverter()
+    conv = client.UnoClient()
     infile = os.path.join(TEST_DOCS, "simple.odt")
 
     with tempfile.NamedTemporaryFile(suffix=".xls") as outfile:
@@ -97,7 +98,7 @@ def test_multiple_servers(server_fixture):
         assert process.returncode is None
 
         # Make a conversion
-        conv = client.UnoConverter(port="2103")
+        conv = client.UnoClient(port="2103")
         infile = os.path.join(TEST_DOCS, "simple.odt")
         with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
             conv.convert(inpath=infile, outpath=outfile.name)
@@ -185,3 +186,77 @@ def test_update_index(server_fixture):
                 # The timestamp in Header 2 should appear exactly once
                 matches = re.findall(b"13:18:27", testfile.read())
                 assert len(matches) == 1
+
+
+def test_convert_not_local():
+    hostname = socket.gethostname()
+    cmd = ["unoserver", "--uno-port=2102", "--port=2103", f"--interface={hostname}"]
+    process = subprocess.Popen(cmd)
+    try:
+        # Wait for it to start
+        time.sleep(5)
+        # Make sure the process is still running, meaning return_code is None
+        assert process.returncode is None
+
+        # Make a conversion
+        infile = os.path.join(TEST_DOCS, "simple.odt")
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+            sys.argv = [
+                "unoconverter",
+                "--interface",
+                hostname,
+                "--port=2103",
+                infile,
+                outfile.name,
+            ]
+            client.converter_main()
+
+            with open(outfile.name, "rb") as testfile:
+                start = testfile.readline()
+                assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
+
+    finally:
+        # Now kill the process
+        process.terminate()
+        # Wait for it to terminate
+        process.wait()
+        # And verify that it was killed
+        assert process.returncode == 0
+
+
+def test_compare_not_local():
+    hostname = socket.gethostname()
+    cmd = ["unoserver", "--uno-port=2102", "--port=2103", f"--interface={hostname}"]
+    process = subprocess.Popen(cmd)
+    try:
+        # Wait for it to start
+        time.sleep(5)
+        # Make sure the process is still running, meaning return_code is None
+        assert process.returncode is None
+
+        # Make a comparison
+        infile1 = os.path.join(TEST_DOCS, "simple.odt")
+        infile2 = os.path.join(TEST_DOCS, "index-with-fields.odt")
+        with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+            sys.argv = [
+                "unoconverter",
+                "--interface",
+                hostname,
+                "--port=2103",
+                infile1,
+                infile2,
+                outfile.name,
+            ]
+            client.comparer_main()
+
+            with open(outfile.name, "rb") as testfile:
+                start = testfile.readline()
+                assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
+
+    finally:
+        # Now kill the process
+        process.terminate()
+        # Wait for it to terminate
+        process.wait()
+        # And verify that it was killed
+        assert process.returncode == 0
