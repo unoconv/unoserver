@@ -76,7 +76,8 @@ for that virtualenv, and specify the ``--system-site-packages`` parameter::
 Windows and Mac installs aren't officially supported yet, but on Windows the
 paths to the LibreOffice Python executable are usually in locations such as
 `C:\\Program Files (x86)\\LibreOffice\\python.exe`. On Mac it can be for
-example `/Applications/LibreOffice.app/Contents/python`.
+example `/Applications/LibreOffice.app/Contents/python` or
+`/Applications/LibreOffice.app/Contents/Resources/python`.
 
 
 Usage
