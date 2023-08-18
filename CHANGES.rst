@@ -1,7 +1,12 @@
 1.7 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- A large refactoring with an XML-RPC server and a new client using that XML-RPC
+  server for communicating. This means the client can now be lightweight, and
+  no longer needs the Uno library, or even LibreOffice installed. Instead the
+  new `unoserver.client.UnoClient()` can be used as a library from Python.
+
+- A cleanup and refactor of the commands, with new, more gooder parameter names.
 
 
 1.6 (2023-08-18)
