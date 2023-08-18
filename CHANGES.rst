@@ -1,4 +1,4 @@
-1.6 (unreleased)
+1.6 (2023-08-18)
 ----------------
 
 - Added some deprecation warnings for command arguments as they will change in 2.0.
