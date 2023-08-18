@@ -101,25 +101,25 @@ Unoserver
 Unoconvert
 ~~~~~~~~~~
 
-``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--interface INTERFACE] [--port PORT] infile outfile``
+``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--host INTERFACE] [--port PORT] infile outfile``
 
 * `infile`: The path to the file to be converted (use - for stdin)
 * `outfile`: The path to the converted file (use - for stdout)
 * `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
 * `--filter`: The export filter to use when converting. It is selected automatically if not specified.
-* `--interface`: The interface used by the server, defaults to "localhost"
+* `--host`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
 
 Unocompare
 ~~~~~~~~~~
 
-``unocompare [-h] [--convert-to CONVERT_TO] [--interface INTERFACE] [--port PORT] infile inorigfile outfile``
+``unocompare [-h] [--file-type FILE_TYPE] [--host INTERFACE] [--port PORT] infile inorigfile outfile``
 
 * `infile`: The path to the modified file to be compared with the original one (use - for stdin)
 * `inorigfile`: The path to the original file to be compared with the modified one (use - for stdin)
 * `outfile`: The path to the result of the comparison and converted file (use - for stdout)
-* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
-* `--interface`: The interface used by the server, defaults to "localhost"
+* `--file-type`: The file type/extension of the output file (ex pdf). Required when using stdout
+* `--host`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
 
 

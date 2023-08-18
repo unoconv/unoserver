@@ -13,6 +13,7 @@ import logging
 import os
 import sys
 import unohelper
+import warnings
 
 from pathlib import Path
 from com.sun.star.beans import PropertyValue
@@ -314,10 +315,27 @@ def main():
     )
     parser.set_defaults(update_index=True)
     parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
+        "--interface",
+        default=None,
+        help="The interface used by the server. Deprecated in favor for --host",
+    )
+    parser.add_argument(
+        "--host", default="127.0.0.1", help="The host used by the server"
     )
     parser.add_argument("--port", default="2002", help="The port used by the server")
     args = parser.parse_args()
+
+    if not sys.warnoptions:
+        warnings.simplefilter("default")  # Change the filter in this process
+
+    if args.interface is not None:
+        warnings.warn(
+            "The argument --interface has been renamed --host and will stop working in 2.0.",
+            DeprecationWarning,
+        )
+    if args.interface is None and args.host is not None:
+        args.interface = args.host
+
     converter = UnoConverter(args.interface, args.port)
 
     if args.outfile == "-":
