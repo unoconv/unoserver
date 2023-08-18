@@ -24,9 +24,20 @@ DOC_TYPES = {
 class UnoClient:
     """An RPC client for Unoserver"""
 
-    def __init__(self, server="127.0.0.1", port="2003"):
+    def __init__(self, server="127.0.0.1", port="2003", host_location="auto"):
         self.server = server
         self.port = port
+        if host_location == "auto":
+            if server in ("127.0.0.1", "localhost"):
+                self.remote = False
+            else:
+                self.remote = True
+        elif host_location == "remote":
+            self.remote = True
+        elif host_location == "local":
+            self.remote = False
+        else:
+            raise RuntimeError("host_location can be 'auto', 'remote', or 'local'")
 
     def convert(
         self,
@@ -67,7 +78,7 @@ class UnoClient:
             else:
                 convert_to = os.path.splitext(outpath)[-1].strip(os.path.extsep)
 
-        if inpath and self.server not in ("127.0.0.1", "localhost"):
+        if self.remote and inpath:
             with open(inpath, "rb") as infile:
                 indata = infile.read()
                 inpath = None
@@ -88,8 +99,8 @@ class UnoClient:
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
-                    # Pipe result to stdout
-                    sys.stdout.buffer.write(result.data)
+                    # Return the result as a blob
+                    return result.data
 
     def compare(
         self,
@@ -135,7 +146,7 @@ class UnoClient:
         elif filetype is None:
             filetype = os.path.splitext(outpath)[-1].strip(os.path.extsep)
 
-        if self.server not in ("127.0.0.1", "localhost"):
+        if self.remote:
             if oldpath:
                 with open(oldpath, "rb") as infile:
                     olddata = infile.read()
@@ -161,8 +172,8 @@ class UnoClient:
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
-                    # Pipe result to stdout
-                    sys.stdout.buffer.write(result.data)
+                    # Return the result as a blob
+                    return result.data
 
 
 def converter_main():
@@ -204,11 +215,21 @@ def converter_main():
     )
     parser.set_defaults(update_index=True)
     parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
+        "--host", default="127.0.0.1", help="The host the server runs on"
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
+    parser.add_argument(
+        "--host-location",
+        default="auto",
+        choices=["auto", "remote", "local"],
+        help="The host location determines the handling of files. If you run the client on the "
+        "same machine as the server, it can be set to local, and the files are sent as paths. "
+        "If they are different machines, it is remote and the files are sent as binary data. "
+        "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
+        "localhost, and binary data for other hosts.",
+    )
     args = parser.parse_args()
-    client = UnoClient(args.interface, args.port)
+    client = UnoClient(args.host, args.port, args.host_location)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,
@@ -218,23 +239,22 @@ def converter_main():
     if args.infile == "-":
         # Get data from stdin
         indata = sys.stdin.buffer.read()
-        client.convert(
-            indata=indata,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
+        args.infile = None
     else:
-        client.convert(
-            inpath=args.infile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
+        indata = None
+
+    result = client.convert(
+        inpath=args.infile,
+        indata=indata,
+        outpath=args.outfile,
+        convert_to=args.convert_to,
+        filtername=args.filter,
+        filter_options=args.filter_options,
+        update_index=args.update_index,
+    )
+
+    if args.outfile is None:
+        sys.stdout.buffer.write(result)
 
 
 def comparer_main():
@@ -259,31 +279,52 @@ def comparer_main():
         help="The file type/extension of the result file (ex pdf). Required when using stdout",
     )
     parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
+        "--host", default="127.0.0.1", help="The host the server run on"
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
+    parser.add_argument(
+        "--host-location",
+        default="auto",
+        choices=["auto", "remote", "local"],
+        help="The host location determines the handling of files. If you run the client on the "
+        "same machine as the server, it can be set to local, and the files are sent as paths. "
+        "If they are different machines, it is remote and the files are sent as binary data. "
+        "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
+        "localhost, and binary data for other hosts.",
+    )
     args = parser.parse_args()
 
-    client = UnoClient(args.interface, args.port)
+    client = UnoClient(args.host, args.port, args.host_location)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,
         # instead of written to a file.
         args.outfile = None
 
+    if args.oldfile == "-" and args.newfile == "-":
+        raise RuntimeError("You can't read both files from stdin")
+
     if args.oldfile == "-":
         # Get data from stdin
-        indata = sys.stdin.buffer.read()
-        client.compare(
-            olddata=indata,
-            newpath=args.newfile,
-            outpath=args.outfile,
-            filetype=args.file_type,
-        )
+        olddata = sys.stdin.buffer.read()
+        newdata = None
+        args.oldfile = None
+
+    elif args.newfile == "-":
+        newdata = sys.stdin.buffer.read()
+        olddata = None
+        args.newfile = None
     else:
-        client.compare(
-            oldpath=args.oldfile,
-            newpath=args.newfile,
-            outpath=args.outfile,
-            filetype=args.file_type,
-        )
+        olddata = newdata = None
+
+    result = client.compare(
+        oldpath=args.oldfile,
+        olddata=olddata,
+        newpath=args.newfile,
+        newdata=newdata,
+        outpath=args.outfile,
+        filetype=args.file_type,
+    )
+
+    if args.outfile is None:
+        sys.stdout.buffer.write(result)
