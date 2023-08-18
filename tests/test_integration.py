@@ -203,7 +203,7 @@ def test_convert_not_local():
         with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
             sys.argv = [
                 "unoconverter",
-                "--interface",
+                "--host",
                 hostname,
                 "--port=2103",
                 infile,
@@ -240,7 +240,7 @@ def test_compare_not_local():
         with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
             sys.argv = [
                 "unoconverter",
-                "--interface",
+                "--host",
                 hostname,
                 "--port=2103",
                 infile1,

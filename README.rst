@@ -89,37 +89,61 @@ and `python3 -m unoserver.comparer` with the same arguments as the main scripts.
 Unoserver
 ~~~~~~~~~
 
-``unoserver [-h] [--interface INTERFACE] [--port PORT] [--daemon] [--executable EXECUTABLE]``
+.. code::
 
-* `--interface`: The interface used by the server, defaults to "localhost"
-* `--port`: The port used by the server, defaults to "2002"
-* `--daemon`:  Deamonize the server
+  unoserver [-h] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
+            [--daemon] [--executable EXECUTABLE] [--user-installation USER_INSTALLATION]
+            [--libreoffice-pid-file LIBREOFFICE_PID_FILE]
+
+* `--interface`: The interface used by the XMLRPC server, defaults to "127.0.0.1"
+* `--port`: The port used by the XMLRPC server, defaults to "2003"
+* `--uno-interface`: The interface used by the LibreOffice server, defaults to "127.0.0.1"
+* `--uno-port`: The port used by the LibreOffice server, defaults to "2002"
+* `--daemon`: Deamonize the server
 * `--executable`: The path to the LibreOffice executable
 * `--user-installation`: The path to the LibreOffice user profile, defaults to a dynamically created temporary directory
+* `--libreoffice-pid-file`: If set, unoserver will write the Libreoffice PID to this file.
+  If started in daemon mode, the file will not be deleted when unoserver exits.
 
 Unoconvert
 ~~~~~~~~~~
 
-``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--interface INTERFACE] [--port PORT] infile outfile``
+.. code::
+
+  unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER] [--filter-options FILTER_OPTIONS]
+             [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
+             [--host-location {auto,remote,local}] infile outfile
 
 * `infile`: The path to the file to be converted (use - for stdin)
 * `outfile`: The path to the converted file (use - for stdout)
 * `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
 * `--filter`: The export filter to use when converting. It is selected automatically if not specified.
-* `--interface`: The interface used by the server, defaults to "localhost"
+* `--filter-options`: Options for the export filter, in name=value format. Use true/false for boolean values.
+* `--host`: The host used by the server, defaults to "127.0.0.1"
 * `--port`: The port used by the server, defaults to "2002"
+* `--host-location`: The host location determines the handling of files. If you run the client on the
+  same machine as the server, it can be set to local, and the files are sent as paths. If they are
+  different machines, it is remote and the files are sent as binary data. Default is auto, and it will
+  send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 
 Unocompare
 ~~~~~~~~~~
 
-``unocompare [-h] [--convert-to CONVERT_TO] [--interface INTERFACE] [--port PORT] infile inorigfile outfile``
+.. code::
 
-* `infile`: The path to the modified file to be compared with the original one (use - for stdin)
-* `inorigfile`: The path to the original file to be compared with the modified one (use - for stdin)
+  unocompare [-h] [--file-type FILE_TYPE] [--host HOST] [--port PORT] [--host-location {auto,remote,local}]
+             oldfile newfile outfile
+
+* `oldfile`: The path to the older file to be compared with the original one (use - for stdin)
+* `newfile`: The path to the newer file to be compared with the modified one (use - for stdin)
 * `outfile`: The path to the result of the comparison and converted file (use - for stdout)
-* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
-* `--interface`: The interface used by the server, defaults to "localhost"
+* `--file-type`: The file type/extension of the result output file (ex pdf). Required when using stdout
+* `--host`: The host used by the server, defaults to "127.0.0.1"
 * `--port`: The port used by the server, defaults to "2002"
+* `--host-location`: The host location determines the handling of files. If you run the client on the
+  same machine as the server, it can be set to local, and the files are sent as paths. If they are
+  different machines, it is remote and the files are sent as binary data. Default is auto, and it will
+  send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 
 
 Development and Testing
