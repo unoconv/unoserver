@@ -3,6 +3,7 @@ import logging
 import os
 import signal
 import subprocess
+import sys
 import tempfile
 import threading
 import platform
@@ -189,6 +190,12 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.daemon:
+        cmd = sys.argv
+        cmd.remove("--daemon")
+        proc = subprocess.Popen(cmd)
+        return proc.pid
+
     with tempfile.TemporaryDirectory() as tmpuserdir:
         user_installation = Path(tmpuserdir).as_uri()
 
@@ -219,9 +226,6 @@ def main():
         if args.libreoffice_pid_file:
             with open(args.libreoffice_pid_file, "wt") as upf:
                 upf.write(f"{pid}")
-
-        if args.daemon:
-            return os.getpid()
 
         process.wait()
 

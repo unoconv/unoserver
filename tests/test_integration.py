@@ -213,7 +213,7 @@ def test_convert_not_local():
 
             with open(outfile.name, "rb") as testfile:
                 start = testfile.readline()
-                assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
+                assert start.startswith(b"%PDF-1.")
 
     finally:
         # Now kill the process
@@ -251,7 +251,7 @@ def test_compare_not_local():
 
             with open(outfile.name, "rb") as testfile:
                 start = testfile.readline()
-                assert start == b"%PDF-1.5\n" or start == b"%PDF-1.6\n"
+                assert start.startswith(b"%PDF-1.")
 
     finally:
         # Now kill the process

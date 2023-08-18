@@ -1,7 +1,7 @@
 2.0b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Made the --daemon parameter work again
 
 
 2.0b1 (2023-08-18)
