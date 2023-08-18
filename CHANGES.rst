@@ -1,5 +1,5 @@
-1.7 (unreleased)
-----------------
+2.0b1 (2023-08-18)
+------------------
 
 - A large refactoring with an XML-RPC server and a new client using that XML-RPC
   server for communicating. This means the client can now be lightweight, and
