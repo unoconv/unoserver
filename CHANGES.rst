@@ -1,7 +1,7 @@
 1.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added some deprecation warnings for command arguments as they will change in 2.0.
 
 
 1.5 (2023-08-11)
