@@ -101,7 +101,7 @@ Unoserver
 Unoconvert
 ~~~~~~~~~~
 
-``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--host INTERFACE] [--port PORT] infile outfile``
+``unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER_NAME] [--filter-options OPTION] [--host INTERFACE] [--port PORT] infile outfile``
 
 * `infile`: The path to the file to be converted (use - for stdin)
 * `outfile`: The path to the converted file (use - for stdout)
@@ -109,6 +109,11 @@ Unoconvert
 * `--filter`: The export filter to use when converting. It is selected automatically if not specified.
 * `--host`: The interface used by the server, defaults to "localhost"
 * `--port`: The port used by the server, defaults to "2002"
+* `--filter-options`: specify a single option for the filter, each option should use a single `--filter-options` parameter
+
+Example for setting PNG width/height:
+
+``unoconvert --filter-options PixelWidth=640 --filter-options PixelHeight=480``
 
 Unocompare
 ~~~~~~~~~~
