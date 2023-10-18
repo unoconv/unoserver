@@ -9,3 +9,4 @@ Contributors
 * Alessandro Filippini, https://github.com/AlePini
 * Dmitry Shachnev, https://github.com/mitya57
 * Socheat Sok, https://github.com/socheatsok78
+* BohwaZ, https://github.com/bohwaz

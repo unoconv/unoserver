@@ -198,9 +198,11 @@ def converter_main():
     )
     parser.add_argument(
         "--filter-options",
+        "--filter-option",
         default=[],
         action="append",
-        help="Options for the export filter, in name=value format. Use true/false for boolean values.",
+        help="Pass an option for the export filter, in name=value format. Use true/false for boolean values. "
+        "Can be repeated for multiple options.",
     )
     parser.add_argument(
         "--update-index",
