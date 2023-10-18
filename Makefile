@@ -15,7 +15,7 @@ devenv:	ve/bin/fullrelease
 
 ve/bin/fullrelease:
 	virtualenv $(root_dir)/ve --python python3 --system-site-packages
-	$(bin_dir)/pip install setuptools$(setuptools_ver) -e .[devenv]
+	$(bin_dir)/pip install -I setuptools$(setuptools_ver) -e .[devenv]
 
 check: devenv
 	$(bin_dir)/black src/unoserver tests

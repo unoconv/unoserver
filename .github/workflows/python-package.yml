@@ -17,31 +17,18 @@ jobs:
       fail-fast: true
     steps:
     - uses: actions/checkout@v3
-    - name: Install dependencies
+    - name: Install Package
       run: |
-        python -m pip install setuptools==58.2.0 -e .[devenv]
+        python -m pip install virtualenv
+        make devenv
+    - name: Check styles
+      run: |
+        make check
+    - name: Install Libreoffice
+      run: |
         sudo apt-get update
         sudo apt-get install libreoffice
-    - name: Check style with black
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        black . --check
-    - name: Lint with flake8
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --max-line-length=120 --statistics
-    - name: Check the packaging
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        pyroma -d .
-    - name: And MANIFEST
-      run: |
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        check-manifest
     - name: Test with pytest
       run: |
-        PYTHONPATH=/ pytest --cov=unoserver
-        coverage xml
-    - name: Upload coverage
-      run: |
-        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -t 6ebaf74314ff4ccd8e87d1f988a4aa2f -r coverage.xml
+        source ve/bin/activate
+        make test

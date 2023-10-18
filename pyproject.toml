@@ -1,0 +1,61 @@
+[build-system]
+requires = ["setuptools>=61.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "unoserver"
+version = "2.0b2.dev0"
+description = "A server for file conversions with Libre Office"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Office/Business",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "License :: OSI Approved :: MIT License",
+]
+keywords = ["libreoffice", "conversion", "documents", "uno", "unoconv"]
+authors = [{name = "Lennart Regebro", email = "regebro@gmail.com"}]
+license = {text = "MIT"}
+urls = {Homepage = "https://github.com/unoconv/unoserver"}
+dynamic = ["readme"]
+requires-python = ">= 3.8"
+
+[project.optional-dependencies]
+devenv = [
+    "pytest",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "pyroma",
+    "check-manifest",
+    "zest.releaser",
+]
+
+[project.scripts]
+unoserver = "unoserver.server:main"
+unoconvert = "unoserver.client:converter_main"
+unocompare = "unoserver.client:comparer_main"
+
+[tool.setuptools]
+packages = ["unoserver"]
+package-dir = {"" = "src"}
+include-package-data = true
+zip-safe = false
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.rst", "CONTRIBUTORS.rst", "CHANGES.rst"]}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.check-manifest]
+ignore = """
+.pre-commit-config.yaml
+tests/*
+tests/documents/*"""
