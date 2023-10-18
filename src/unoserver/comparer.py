@@ -11,7 +11,6 @@ import io
 import logging
 import os
 import unohelper
-import warnings
 
 from com.sun.star.beans import PropertyValue
 from com.sun.star.io import XOutputStream
@@ -269,96 +268,3 @@ class UnoComparer:
             return output_stream.buffer.getvalue()
         else:
             return None
-
-
-def main():
-    logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
-
-    parser = argparse.ArgumentParser("unocompare")
-    parser.add_argument(
-        "infile",
-        help="The path to the modified file to be compared with the original one (use - for stdin)",
-    )
-    parser.add_argument(
-        "inOrigfile",
-        help="The path to the original file to be compared with the modified one (use - for stdin)",
-    )
-    parser.add_argument(
-        "outfile",
-        help="The path to the result of the comparison and converted file (use - for stdout)",
-    )
-    parser.add_argument(
-        "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Deprecated in favor for --file-type",
-    )
-    parser.add_argument(
-        "--file-type",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
-    )
-    parser.add_argument(
-        "--interface",
-        default=None,
-        help="The interface used by the server. Deprecated in favor for --host",
-    )
-    parser.add_argument(
-        "--host", default="127.0.0.1", help="The host used by the server"
-    )
-    parser.add_argument("--port", default="2002", help="The port used by the server")
-    args = parser.parse_args()
-
-    if not sys.warnoptions:
-        warnings.simplefilter("default")  # Change the filter in this process
-
-    warnings.warn(
-        "Note that the order of the file parameters will change in 2.0.",
-        DeprecationWarning,
-    )
-
-    if args.interface is not None:
-        warnings.warn(
-            "The argument --interface has been renamed --host and will stop working in 2.0.",
-            DeprecationWarning,
-        )
-    if args.interface is None and args.host is not None:
-        args.interface = args.host
-
-    if args.convert_to is not None:
-        warnings.warn(
-            "The argument --convert-to has been renamed --file-type and will stop working in 2.0.",
-            DeprecationWarning,
-        )
-    if args.file_type is not None:
-        args.convert_to = args.file_type
-
-    comparer = UnoComparer(args.interface, args.port)
-
-    if args.outfile == "-":
-        # Set outfile to None, to get the data returned from the function,
-        # instead of written to a file.
-        args.outfile = None
-
-    if args.infile == "-":
-        # Get data from stdin
-        indata = sys.stdin.buffer.read()
-        result = comparer.compare(
-            indata=indata,
-            inOrgpath=args.inOrigfile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-        )
-    else:
-        result = comparer.compare(
-            inpath=args.infile,
-            inOrgpath=args.inOrigfile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-        )
-
-    if args.outfile is None:
-        # Pipe result to stdout
-        sys.stdout.buffer.write(result)
-
-
-if __name__ == "__main__":
-    main()
