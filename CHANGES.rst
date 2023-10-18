@@ -3,6 +3,8 @@
 
 - Made the --daemon parameter work again
 
+- Added a --filter-option alias for --filter-options
+
 
 2.0b1 (2023-08-18)
 ------------------

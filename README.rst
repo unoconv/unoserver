@@ -119,13 +119,19 @@ Unoconvert
 * `outfile`: The path to the converted file (use - for stdout)
 * `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
 * `--filter`: The export filter to use when converting. It is selected automatically if not specified.
-* `--filter-options`: Options for the export filter, in name=value format. Use true/false for boolean values.
+* `--filter-option`: Pass an option for the export filter, in name=value format. Use true/false for boolean values. Can be repeated for multiple options.
+* `--filter-options`: Alias for `--filter-option`.
 * `--host`: The host used by the server, defaults to "127.0.0.1"
 * `--port`: The port used by the server, defaults to "2002"
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
+
+Example for setting PNG width/height::
+
+  unoconvert infile.odt outfile.png --filter-options PixelWidth=640 --filter-options PixelHeight=480
+
 
 Unocompare
 ~~~~~~~~~~
