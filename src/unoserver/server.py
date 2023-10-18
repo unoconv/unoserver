@@ -3,25 +3,42 @@ import logging
 import os
 import signal
 import subprocess
+import sys
 import tempfile
+import threading
 import platform
+import xmlrpc.server
 from pathlib import Path
+
+from unoserver import converter, comparer
 
 logger = logging.getLogger("unoserver")
 
 
 class UnoServer:
-    def __init__(self, interface="127.0.0.1", port="2002", user_installation=None):
+    def __init__(
+        self,
+        interface="127.0.0.1",
+        port="2003",
+        uno_interface="127.0.0.1",
+        uno_port="2002",
+        user_installation=None,
+    ):
         self.interface = interface
+        self.uno_interface = uno_interface
         self.port = port
+        self.uno_port = uno_port
         self.user_installation = user_installation
+        self.libreoffice_process = None
+        self.xmlrcp_thread = None
+        self.xmlrcp_server = None
 
     def start(self, executable="libreoffice"):
         logger.info("Starting unoserver.")
 
         connection = (
             "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
-            % (self.interface, self.port)
+            % (self.uno_interface, self.uno_port)
         )
 
         # I think only --headless and --norestore are needed for
@@ -40,16 +57,20 @@ class UnoServer:
         ]
 
         logger.info("Command: " + " ".join(cmd))
-        process = subprocess.Popen(cmd)
+        self.libreoffice_process = subprocess.Popen(cmd)
+        self.xmlrcp_thread = threading.Thread(None, self.serve)
 
         def signal_handler(signum, frame):
             logger.info("Sending signal to LibreOffice")
             try:
-                process.send_signal(signum)
+                self.libreoffice_process.send_signal(signum)
             except ProcessLookupError as e:
                 # 3 means the process is already dead
                 if e.errno != 3:
                     raise
+
+            if self.xmlrcp_server is not None:
+                self.xmlrcp_server.shutdown()
 
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
@@ -58,7 +79,74 @@ class UnoServer:
         if platform.system() != "Windows":
             signal.signal(signal.SIGHUP, signal_handler)
 
-        return process
+        self.xmlrcp_thread.start()
+        return self.libreoffice_process
+
+    def serve(self):
+        # Create server
+        with xmlrpc.server.SimpleXMLRPCServer(
+            (self.interface, int(self.port)), allow_none=True
+        ) as server:
+            self.xmlrcp_server = server
+
+            server.register_introspection_functions()
+
+            @server.register_function
+            def convert(
+                inpath=None,
+                indata=None,
+                outpath=None,
+                convert_to=None,
+                filtername=None,
+                filter_options=[],
+                update_index=True,
+            ):
+                if indata is not None:
+                    indata = indata.data
+                conv = converter.UnoConverter(
+                    interface=self.uno_interface, port=self.uno_port
+                )
+                result = conv.convert(
+                    inpath,
+                    indata,
+                    outpath,
+                    convert_to,
+                    filtername,
+                    filter_options,
+                    update_index,
+                )
+                return result
+
+            @server.register_function
+            def compare(
+                oldpath=None,
+                olddata=None,
+                newpath=None,
+                newdata=None,
+                outpath=None,
+                filetype=None,
+            ):
+                if olddata is not None:
+                    olddata = olddata.data
+                if newdata is not None:
+                    newdata = newdata.data
+                comp = comparer.UnoComparer(
+                    interface=self.uno_interface, port=self.uno_port
+                )
+                result = comp.compare(
+                    oldpath, olddata, newpath, newdata, outpath, filetype
+                )
+                return result
+
+            server.serve_forever()
+
+    def stop(self):
+        if self.libreoffice_process:
+            self.libreoffice_process.terminate()
+        if self.xmlrcp_server is not None:
+            self.xmlrcp_server.shutdown()
+        if self.xmlrcp_thread is not None:
+            self.xmlrcp_thread.join()
 
 
 def main():
@@ -67,9 +155,21 @@ def main():
 
     parser = argparse.ArgumentParser("unoserver")
     parser.add_argument(
-        "--interface", default="127.0.0.1", help="The interface used by the server"
+        "--interface",
+        default="127.0.0.1",
+        help="The interface used by the XMLRPC server",
     )
-    parser.add_argument("--port", default="2002", help="The port used by the server")
+    parser.add_argument(
+        "--uno-interface",
+        default=None,
+        help="The interface used by the Libreoffice UNO server",
+    )
+    parser.add_argument(
+        "--port", default="2003", help="The port used by the XMLRPC server"
+    )
+    parser.add_argument(
+        "--uno-port", default="2002", help="The port used by the Libreoffice UNO server"
+    )
     parser.add_argument("--daemon", action="store_true", help="Deamonize the server")
     parser.add_argument(
         "--executable",
@@ -90,13 +190,30 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.daemon:
+        cmd = sys.argv
+        cmd.remove("--daemon")
+        proc = subprocess.Popen(cmd)
+        return proc.pid
+
     with tempfile.TemporaryDirectory() as tmpuserdir:
         user_installation = Path(tmpuserdir).as_uri()
 
         if args.user_installation is not None:
             user_installation = Path(args.user_installation).as_uri()
 
-        server = UnoServer(args.interface, args.port, user_installation)
+        if args.uno_interface is None:
+            args.uno_interface = args.interface
+        if args.uno_port == args.port:
+            raise RuntimeError("--port and --uno-port must be different")
+
+        server = UnoServer(
+            args.interface,
+            args.port,
+            args.uno_interface,
+            args.uno_port,
+            user_installation,
+        )
 
         # If it's daemonized, this returns the process.
         # It returns 0 of getting killed in a normal way.
@@ -109,9 +226,6 @@ def main():
         if args.libreoffice_pid_file:
             with open(args.libreoffice_pid_file, "wt") as upf:
                 upf.write(f"{pid}")
-
-        if args.daemon:
-            return process
 
         process.wait()
 

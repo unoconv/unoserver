@@ -7,13 +7,10 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
-import argparse
 import io
 import logging
 import os
-import sys
 import unohelper
-import warnings
 
 from pathlib import Path
 from com.sun.star.beans import PropertyValue
@@ -65,6 +62,11 @@ class OutputStream(unohelper.Base, XOutputStream):
 
 
 class UnoConverter:
+    """The class that performs the conversion
+
+    Don't use this directly, instead use the client.UnoConverter.
+    """
+
     def __init__(self, interface="127.0.0.1", port="2002"):
         logger.info("Starting unoconverter.")
 
@@ -138,17 +140,9 @@ class UnoConverter:
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
 
         update_index: Updates the index before conversion
+
+        You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
-        if inpath is None and indata is None:
-            raise RuntimeError("Nothing to convert.")
-
-        if inpath is not None and indata is not None:
-            raise RuntimeError("You can only pass in inpath or indata, not both.")
-
-        if outpath is None and convert_to is None:
-            raise RuntimeError(
-                "If you don't specify an output path, you must specify a file-type."
-            )
 
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
 
@@ -160,17 +154,17 @@ class UnoConverter:
                 raise RuntimeError(f"Path {inpath} does not exist.")
 
             # Load the document
+            logger.info(f"Opening {inpath} for input")
             import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
-            # This returned None if the file was locked, I'm hoping the ReadOnly flag avoids that.
-            logger.info(f"Opening {inpath}")
 
         elif indata:
             # The document content is passed in as a byte string
-            input_stream = self.service.createInstanceWithContext(
+            logger.info("Opening private:stream for input")
+            old_stream = self.service.createInstanceWithContext(
                 "com.sun.star.io.SequenceInputStream", self.context
             )
-            input_stream.initialize((uno.ByteSequence(indata),))
-            input_props += (PropertyValue(Name="InputStream", Value=input_stream),)
+            old_stream.initialize((uno.ByteSequence(indata),))
+            input_props += (PropertyValue(Name="InputStream", Value=old_stream),)
             import_path = "private:stream"
 
         document = self.desktop.loadComponentFromURL(
@@ -274,100 +268,3 @@ class UnoConverter:
             return output_stream.buffer.getvalue()
         else:
             return None
-
-
-def main():
-    logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
-
-    parser = argparse.ArgumentParser("unoconvert")
-    parser.add_argument(
-        "infile", help="The path to the file to be converted (use - for stdin)"
-    )
-    parser.add_argument(
-        "outfile", help="The path to the converted file (use - for stdout)"
-    )
-    parser.add_argument(
-        "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
-    )
-    parser.add_argument(
-        "--filter",
-        default=None,
-        help="The export filter to use when converting. It is selected automatically if not specified.",
-    )
-    parser.add_argument(
-        "--filter-options",
-        default=[],
-        action="append",
-        help="Options for the export filter, in name=value format. Use true/false for boolean values.",
-    )
-    parser.add_argument(
-        "--update-index",
-        action="store_true",
-        help="Updes the indexes before conversion. Can be time consuming.",
-    )
-    parser.add_argument(
-        "--dont-update-index",
-        action="store_false",
-        dest="update_index",
-        help="Skip updating the indexes.",
-    )
-    parser.set_defaults(update_index=True)
-    parser.add_argument(
-        "--interface",
-        default=None,
-        help="The interface used by the server. Deprecated in favor for --host",
-    )
-    parser.add_argument(
-        "--host", default="127.0.0.1", help="The host used by the server"
-    )
-    parser.add_argument("--port", default="2002", help="The port used by the server")
-    args = parser.parse_args()
-
-    if not sys.warnoptions:
-        warnings.simplefilter("default")  # Change the filter in this process
-
-    if args.interface is not None:
-        warnings.warn(
-            "The argument --interface has been renamed --host and will stop working in 2.0.",
-            DeprecationWarning,
-        )
-    if args.interface is None and args.host is not None:
-        args.interface = args.host
-
-    converter = UnoConverter(args.interface, args.port)
-
-    if args.outfile == "-":
-        # Set outfile to None, to get the data returned from the function,
-        # instead of written to a file.
-        args.outfile = None
-
-    if args.infile == "-":
-        # Get data from stdin
-        indata = sys.stdin.buffer.read()
-        result = converter.convert(
-            indata=indata,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
-    else:
-        result = converter.convert(
-            inpath=args.infile,
-            outpath=args.outfile,
-            convert_to=args.convert_to,
-            filtername=args.filter,
-            filter_options=args.filter_options,
-            update_index=args.update_index,
-        )
-
-    if args.outfile is None:
-        # Pipe result to stdout
-        sys.stdout.buffer.write(result)
-
-
-if __name__ == "__main__":
-    main()

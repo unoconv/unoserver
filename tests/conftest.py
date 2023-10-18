@@ -16,4 +16,4 @@ def server_fixture():
         time.sleep(8)
         yield process  # provide the fixture value
         print("Teardown Unoserver")
-        process.terminate()
+        srvr.stop()
