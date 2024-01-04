@@ -87,7 +87,7 @@ class UnoClient:
             result = proxy.convert(
                 inpath,
                 indata,
-                outpath if self.server in ("127.0.0.1", "localhost") else None,
+                None if self.remote else outpath,
                 convert_to,
                 filtername,
                 filter_options,
