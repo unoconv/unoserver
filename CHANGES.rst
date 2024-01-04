@@ -1,8 +1,11 @@
 2.1 (unreleased)
 ----------------
 
-- The remote didn't work for the outfile if you used port forwarding
-  from localhost.
+- Specifying `--host-location=remote` didn't work for the outfile if you
+  used port forwarding from localhost.
+
+- Always default the uno interface to 127.0.0.1, no matter what the XMLRPC
+  interface is.
 
 
 2.0 (2023-10-19)
