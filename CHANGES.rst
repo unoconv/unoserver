@@ -1,7 +1,8 @@
 2.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- The remote didn't work for the outfile if you used port forwarding
+  from localhost.
 
 
 2.0 (2023-10-19)
