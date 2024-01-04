@@ -161,7 +161,7 @@ def main():
     )
     parser.add_argument(
         "--uno-interface",
-        default=None,
+        default="127.0.0.1",
         help="The interface used by the Libreoffice UNO server",
     )
     parser.add_argument(
@@ -202,8 +202,6 @@ def main():
         if args.user_installation is not None:
             user_installation = Path(args.user_installation).as_uri()
 
-        if args.uno_interface is None:
-            args.uno_interface = args.interface
         if args.uno_port == args.port:
             raise RuntimeError("--port and --uno-port must be different")
 
