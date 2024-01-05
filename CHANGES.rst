@@ -1,7 +1,16 @@
 2.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Add a --input-filter argument to specify a different file type than the
+  one LibreOffice will guess.
+
+- For consistency renamed --filter to --output-filter, but the --filter
+  will remain for backwards compatibility.
+
+- If you specify a non-existent filter, the list of filters is now alphabetical.
+
+- You can now use both the LibreOffice name, but also internal shorter names
+  and sometimes even file suffices to specify the filter.
 
 
 2.0.1 (2024-01-12)

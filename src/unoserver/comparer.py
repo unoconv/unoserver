@@ -247,7 +247,9 @@ class UnoComparer:
                 )
 
             logger.info(f"Exporting to {outpath}")
-            logger.info(f"Using {filtername} export filter")
+            logger.info(
+                f"Using {filtername} export filter from {new_type} to {export_type}"
+            )
 
             output_props = (
                 PropertyValue(Name="FilterName", Value=filtername),
