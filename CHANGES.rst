@@ -1,5 +1,5 @@
-2.1 (unreleased)
-----------------
+2.0.1 (2024-01-12)
+------------------
 
 - Specifying `--host-location=remote` didn't work for the outfile if you
   used port forwarding from localhost.
