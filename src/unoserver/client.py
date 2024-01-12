@@ -48,6 +48,7 @@ class UnoClient:
         filtername=None,
         filter_options=[],
         update_index=True,
+        infiltername=None,
     ):
         """Converts a file from one type to another
 
@@ -92,6 +93,7 @@ class UnoClient:
                 filtername,
                 filter_options,
                 update_index,
+                infiltername,
             )
             if result is not None:
                 # We got the file back over xmlrpc:
@@ -192,6 +194,11 @@ def converter_main():
         help="The file type/extension of the output file (ex pdf). Required when using stdout",
     )
     parser.add_argument(
+        "--input-filter",
+        help="The LibreOffice input filter to use (ex 'writer8'), if autodetect fails",
+    )
+    parser.add_argument(
+        "--output-filter",
         "--filter",
         default=None,
         help="The export filter to use when converting. It is selected automatically if not specified.",
@@ -250,9 +257,10 @@ def converter_main():
         indata=indata,
         outpath=args.outfile,
         convert_to=args.convert_to,
-        filtername=args.filter,
+        filtername=args.output_filter,
         filter_options=args.filter_options,
         update_index=args.update_index,
+        infiltername=args.input_filter,
     )
 
     if args.outfile is None:

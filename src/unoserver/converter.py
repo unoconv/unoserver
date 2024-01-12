@@ -102,6 +102,17 @@ class UnoConverter:
         # No filter found
         return None
 
+    def get_available_import_filters(self):
+        # List import filters. You can only search on module, iflags and eflags,
+        # so the import and export types we have to test in a loop
+        import_filters = self.filter_service.createSubSetEnumerationByQuery(
+            "getSortedFilterList():iflags=1"
+        )
+
+        while import_filters.hasMoreElements():
+            # Filter DocumentService here
+            yield prop2dict(import_filters.nextElement())
+
     def get_available_export_filters(self):
         # List export filters. You can only search on module, iflags and eflags,
         # so the import and export types we have to test in a loop
@@ -113,8 +124,20 @@ class UnoConverter:
             # Filter DocumentService here
             yield prop2dict(export_filters.nextElement())
 
-    def get_available_filter_names(self):
-        return [filter["Name"] for filter in self.get_available_export_filters()]
+    def get_filter_names(self, filters):
+        names = {}
+        for flt in filters:
+            # Add all names and exstensions, etc in a mapping to the internal
+            # Libreoffice name, so we can map it.
+            # The actual name:
+            names[flt["Name"]] = flt["Name"]
+            # UserData sometimes has file extensions, etc.
+            # Skip empty data, and those weird file paths, and "true"...
+            for name in filter(
+                lambda x: x and x != "true" and "." not in x, flt["UserData"]
+            ):
+                names[name] = flt["Name"]
+        return names
 
     def convert(
         self,
@@ -125,6 +148,7 @@ class UnoConverter:
         filtername=None,
         filter_options=[],
         update_index=True,
+        infiltername=None,
     ):
         """Converts a file from one type to another
 
@@ -139,12 +163,25 @@ class UnoConverter:
 
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
 
+        filter_options: A list of output filter options as strings, in a "OptionName=Value" format.
+
         update_index: Updates the index before conversion
+
+        infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
 
         You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
-
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
+        if infiltername:
+            infilters = self.get_filter_names(self.get_available_import_filters())
+            if infiltername in infilters:
+                input_props += (
+                    PropertyValue(Name="FilterName", Value=infilters[infiltername]),
+                )
+            else:
+                raise ValueError(
+                    f"There is no '{infiltername}' import filter. Available filters: {sorted(infilters.keys())}"
+                )
 
         if inpath:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
@@ -170,6 +207,17 @@ class UnoConverter:
         document = self.desktop.loadComponentFromURL(
             import_path, "_default", 0, input_props
         )
+
+        if document is None:
+            # Could not load document, fail
+            if not inpath:
+                inpath = "<remote file>"
+            if not infiltername:
+                infiltername = "default"
+
+            error = f"Could not load document {inpath} using the {infiltername} filter."
+            logger.error(error)
+            raise RuntimeError(error)
 
         if update_index:
             # Update document indexes
@@ -216,10 +264,12 @@ class UnoConverter:
                 )
 
             if filtername is not None:
-                available_filter_names = self.get_available_filter_names()
+                available_filter_names = self.get_filter_names(
+                    self.get_available_export_filters()
+                )
                 if filtername not in available_filter_names:
                     raise RuntimeError(
-                        f"'{filtername}' is not a valid filter name. Valid filters are {available_filter_names}"
+                        f"There is no '{filtername}' export-filter. Available filters: {sorted(available_filter_names)}"
                     )
             else:
                 filtername = self.find_filter(import_type, export_type)
@@ -229,7 +279,9 @@ class UnoConverter:
                     )
 
             logger.info(f"Exporting to {outpath}")
-            logger.info(f"Using {filtername} export filter")
+            logger.info(
+                f"Using {filtername} export filter from {infiltername} to {export_type}"
+            )
 
             filter_data = []
             for option in filter_options:

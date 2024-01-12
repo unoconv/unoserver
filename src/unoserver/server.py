@@ -100,6 +100,7 @@ class UnoServer:
                 filtername=None,
                 filter_options=[],
                 update_index=True,
+                infiltername=None,
             ):
                 if indata is not None:
                     indata = indata.data
@@ -114,6 +115,7 @@ class UnoServer:
                     filtername,
                     filter_options,
                     update_index,
+                    infiltername,
                 )
                 return result
 
