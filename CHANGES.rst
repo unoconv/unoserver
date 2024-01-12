@@ -1,4 +1,4 @@
-2.0.2 (unreleased)
+2.1b1 (2024-01-12)
 ------------------
 
 - Add a --input-filter argument to specify a different file type than the
