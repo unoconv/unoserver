@@ -195,7 +195,8 @@ Differences for the user
 
 * You should be able to on a multi-core machine run several `unoservers` with different ports.
   There is however no support for any form of load balancing in `unoserver`, you would have to
-  implement that yourself in your usage of `unoconverter`.
+  implement that yourself in your usage of `unoconverter`. For performant multi-core scaling, it
+  is necessary to specify unique values for each `unoserver`'s `--port` and `--uno-port` options.
 
 * Only LibreOffice is officially supported. Other variations are untested.
 
