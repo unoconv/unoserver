@@ -79,10 +79,13 @@ class UnoClient:
             else:
                 convert_to = os.path.splitext(outpath)[-1].strip(os.path.extsep)
 
-        if self.remote and inpath:
-            with open(inpath, "rb") as infile:
-                indata = infile.read()
-                inpath = None
+        if inpath:
+            if self.remote:
+                with open(inpath, "rb") as infile:
+                    indata = infile.read()
+                    inpath = None
+            else:
+                inpath = os.path.abspath(inpath)
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
             result = proxy.convert(
