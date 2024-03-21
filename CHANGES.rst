@@ -1,7 +1,10 @@
 2.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added --version flags to the commands to print the version number.
+  Also unoserver prints the version on startup.
+
+- File paths are now always sent as absolute paths.
 
 
 2.1b1 (2024-01-12)
