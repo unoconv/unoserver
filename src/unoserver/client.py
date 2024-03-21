@@ -3,8 +3,10 @@ import logging
 import os
 import sys
 
+from importlib import metadata
 from xmlrpc.client import ServerProxy
 
+__version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
 
 SFX_FILTER_IMPORT = 1
@@ -87,6 +89,11 @@ class UnoClient:
             else:
                 inpath = os.path.abspath(inpath)
 
+        if outpath:
+            outpath = os.path.abspath(outpath)
+            if os.path.isdir(outpath):
+                raise ValueError("The outpath can not be a directory")
+
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
             result = proxy.convert(
                 inpath,
@@ -162,6 +169,11 @@ class UnoClient:
                     newdata = infile.read()
                     newpath = None
 
+        if oldpath:
+            oldpath = os.path.abspath(oldpath)
+        if newpath:
+            newpath = os.path.abspath(newpath)
+
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
             result = proxy.compare(
                 oldpath,
@@ -191,6 +203,13 @@ def converter_main():
     )
     parser.add_argument(
         "outfile", help="The path to the converted file (use - for stdout)"
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        help="Display version and exit.",
+        version=f"{parser.prog} {__version__}",
     )
     parser.add_argument(
         "--convert-to",
@@ -286,6 +305,13 @@ def comparer_main():
     parser.add_argument(
         "outfile",
         help="The path to the result of the comparison and converted file (use - for stdout)",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        help="Display version and exit.",
+        version=f"{parser.prog} {__version__}",
     )
     parser.add_argument(
         "--file-type",
