@@ -8,10 +8,12 @@ import tempfile
 import threading
 import platform
 import xmlrpc.server
+from importlib import metadata
 from pathlib import Path
 
 from unoserver import converter, comparer
 
+__version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
 
 
@@ -34,7 +36,7 @@ class UnoServer:
         self.xmlrcp_server = None
 
     def start(self, executable="libreoffice"):
-        logger.info("Starting unoserver.")
+        logger.info(f"Starting unoserver {__version__}.")
 
         connection = (
             "socket,host=%s,port=%s,tcpNoDelay=1;urp;StarOffice.ComponentContext"
@@ -156,6 +158,13 @@ def main():
     logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser("unoserver")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        help="Display version and exit.",
+        version=f"{parser.prog} {__version__}",
+    )
     parser.add_argument(
         "--interface",
         default="127.0.0.1",
