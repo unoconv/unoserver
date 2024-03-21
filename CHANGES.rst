@@ -1,5 +1,5 @@
-2.1 (unreleased)
-----------------
+2.0.2 (2024-03-21)
+------------------
 
 - Added --version flags to the commands to print the version number.
   Also unoserver prints the version on startup.
