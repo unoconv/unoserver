@@ -92,7 +92,7 @@ Unoserver
 
 .. code::
 
-  unoserver [-h] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
+  unoserver [-h] [-v] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
             [--daemon] [--executable EXECUTABLE] [--user-installation USER_INSTALLATION]
             [--libreoffice-pid-file LIBREOFFICE_PID_FILE]
 
@@ -105,28 +105,32 @@ Unoserver
 * `--user-installation`: The path to the LibreOffice user profile, defaults to a dynamically created temporary directory
 * `--libreoffice-pid-file`: If set, unoserver will write the Libreoffice PID to this file.
   If started in daemon mode, the file will not be deleted when unoserver exits.
+* `-v, --version`: Display version and exit.
 
 Unoconvert
 ~~~~~~~~~~
 
 .. code::
 
-  unoconvert [-h] [--convert-to CONVERT_TO] [--filter FILTER] [--filter-options FILTER_OPTIONS]
-             [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
+  unoconvert [-h] [-v] [--convert-to CONVERT_TO] [--input-filter INPUT_FILTER] [--output-filter OUTPUT_FILTER]
+             [--filter-options FILTER_OPTIONS] [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
              [--host-location {auto,remote,local}] infile outfile
 
 * `infile`: The path to the file to be converted (use - for stdin)
 * `outfile`: The path to the converted file (use - for stdout)
 * `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
-* `--filter`: The export filter to use when converting. It is selected automatically if not specified.
+* `--input-filter`: The LibreOffice input filter to use (ex 'writer8'), if autodetect fails
+* `--output-filter`: The export filter to use when converting. It is selected automatically if not specified.
+* `--filter`: Deprecated alias for `--output-filter`
 * `--filter-option`: Pass an option for the export filter, in name=value format. Use true/false for boolean values. Can be repeated for multiple options.
-* `--filter-options`: Alias for `--filter-option`.
+* `--filter-options`: Deprecated alias for `--filter-option`.
 * `--host`: The host used by the server, defaults to "127.0.0.1"
 * `--port`: The port used by the server, defaults to "2002"
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
+* `-v, --version`: Display version and exit.
 
 Example for setting PNG width/height::
 
@@ -138,7 +142,7 @@ Unocompare
 
 .. code::
 
-  unocompare [-h] [--file-type FILE_TYPE] [--host HOST] [--port PORT] [--host-location {auto,remote,local}]
+  unocompare [-h] [-v] [--file-type FILE_TYPE] [--host HOST] [--port PORT] [--host-location {auto,remote,local}]
              oldfile newfile outfile
 
 * `oldfile`: The path to the older file to be compared with the original one (use - for stdin)
@@ -151,6 +155,7 @@ Unocompare
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
+* `-v, --version`: Display version and exit.
 
 
 Development and Testing
