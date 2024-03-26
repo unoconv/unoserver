@@ -1,7 +1,7 @@
 2.1.0 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Released with the wrong version number, that should have been 2.1.
 
 
 2.0.2 (2024-03-21)
