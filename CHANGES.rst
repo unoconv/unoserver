@@ -1,5 +1,5 @@
-2.1.0 (unreleased)
-------------------
+2.1 (2024-03-26)
+----------------
 
 - Released with the wrong version number, that should have been 2.1.
 
