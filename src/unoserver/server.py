@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import signal
+import socket
 import subprocess
 import sys
 import tempfile
@@ -15,6 +16,22 @@ from unoserver import converter, comparer
 
 __version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
+
+
+class XMLRPCServer(xmlrpc.server.SimpleXMLRPCServer):
+    def __init__(
+        self,
+        addr: tuple[str, int],
+        allow_none: bool = False,
+    ) -> None:
+        addr_info = socket.getaddrinfo(addr[0], addr[1], proto=socket.IPPROTO_TCP)
+
+        if len(addr_info) == 0:
+            raise RuntimeError(f"Could not get interface information for {addr[0]}:{addr[1]}")
+
+        self.address_family = addr_info[0][0]
+        self.socket_type = addr_info[0][1]
+        super().__init__(addr=addr_info[0][4], allow_none=allow_none)        
 
 
 class UnoServer:
@@ -86,7 +103,7 @@ class UnoServer:
 
     def serve(self):
         # Create server
-        with xmlrpc.server.SimpleXMLRPCServer(
+        with XMLRPCServer(
             (self.interface, int(self.port)), allow_none=True
         ) as server:
             self.xmlrcp_server = server
