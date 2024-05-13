@@ -1,7 +1,7 @@
 2.2 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- ReeceJones added support to specify IPv6 adresses.
 
 
 2.1 (2024-03-26)
