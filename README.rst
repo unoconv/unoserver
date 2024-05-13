@@ -125,7 +125,7 @@ Unoconvert
 * `--filter-option`: Pass an option for the export filter, in name=value format. Use true/false for boolean values. Can be repeated for multiple options.
 * `--filter-options`: Deprecated alias for `--filter-option`.
 * `--host`: The host used by the server, defaults to "127.0.0.1"
-* `--port`: The port used by the server, defaults to "2002"
+* `--port`: The port used by the server, defaults to "2003"
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
@@ -150,7 +150,7 @@ Unocompare
 * `outfile`: The path to the result of the comparison and converted file (use - for stdout)
 * `--file-type`: The file type/extension of the result output file (ex pdf). Required when using stdout
 * `--host`: The host used by the server, defaults to "127.0.0.1"
-* `--port`: The port used by the server, defaults to "2002"
+* `--port`: The port used by the server, defaults to "2003"
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
