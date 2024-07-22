@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 
 from importlib import metadata
 from xmlrpc.client import ServerProxy
@@ -40,6 +41,22 @@ class UnoClient:
             self.remote = False
         else:
             raise RuntimeError("host_location can be 'auto', 'remote', or 'local'")
+
+    def _connect(self, proxy, retries=5, sleep=10):
+        """Check the connection to the proxy multiple times
+
+        Returns the info() data (unoserver version + filters)"""
+
+        while retries > 0:
+            try:
+                info = proxy.info()
+                return info
+            except ConnectionError:
+                retries -= 1
+                if retries > 0:
+                    time.sleep(sleep)
+                else:
+                    raise
 
     def convert(
         self,
@@ -95,6 +112,8 @@ class UnoClient:
                 raise ValueError("The outpath can not be a directory")
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            self._connect(proxy)
+
             result = proxy.convert(
                 inpath,
                 indata,
@@ -175,6 +194,8 @@ class UnoClient:
             newpath = os.path.abspath(newpath)
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            self._connect(proxy)
+
             result = proxy.compare(
                 oldpath,
                 olddata,
