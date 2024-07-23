@@ -1,4 +1,4 @@
-2.2 (unreleased)
+2.2 (2024-07-23)
 ----------------
 
 - ReeceJones added support to specify IPv6 adresses.
