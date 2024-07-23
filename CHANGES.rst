@@ -3,6 +3,17 @@
 
 - ReeceJones added support to specify IPv6 adresses.
 
+- Now tries to connect to the server, with retries if the server has
+  not been started yet.
+
+- Verifies that the version installed on the server and client is the same.
+
+- If you misspell a filter name, the output is nicer.
+
+- The clients got very silent in the refactor, fixed that.
+
+- --verbose and --quiet arguments to get even more output, or less.
+
 
 2.1 (2024-03-26)
 ----------------
