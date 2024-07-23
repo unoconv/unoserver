@@ -50,6 +50,11 @@ class UnoClient:
         while retries > 0:
             try:
                 info = proxy.info()
+                if not info["unoserver"] == __version__:
+                    raise RuntimeError(
+                        f"Version mismatch. Client runs {__version__} while "
+                        f"Server runs {info['unoserver']}"
+                    )
                 return info
             except ConnectionError:
                 retries -= 1
@@ -112,7 +117,21 @@ class UnoClient:
                 raise ValueError("The outpath can not be a directory")
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
-            self._connect(proxy)
+            info = self._connect(proxy)
+
+            if infiltername and infiltername not in info["import_filters"]:
+                existing = "\n".join(sorted(info["import_filters"]))
+                logger.critical(
+                    f"Unknown import filter: {infiltername}. Available filters:\n{existing}"
+                )
+                raise RuntimeError("Invalid parameter")
+
+            if filtername and filtername not in info["export_filters"]:
+                existing = "\n".join(sorted(info["export_filters"]))
+                logger.critical(
+                    f"Unknown export filter: {filtername}. Available filters:\n{existing}"
+                )
+                raise RuntimeError("Invalid parameter")
 
             result = proxy.convert(
                 inpath,

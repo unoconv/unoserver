@@ -27,6 +27,7 @@ def test_server_params(popen_mock, thread_mock):
         ]
     )
 
+
 @mock.patch("threading.Thread")
 @mock.patch("subprocess.Popen")
 def test_server_ipv6_params(popen_mock, thread_mock):
