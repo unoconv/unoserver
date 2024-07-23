@@ -147,7 +147,7 @@ def test_explicit_export_filter(server_fixture, filename):
 
 @pytest.mark.parametrize("filename", ["simple.odt", "simple.xlsx"])
 def test_invalid_explicit_export_filter_prints_available_filters(
-    server_fixture, filename
+    caplog, server_fixture, filename
 ):
     infile = os.path.join(TEST_DOCS, filename)
 
@@ -156,10 +156,13 @@ def test_invalid_explicit_export_filter_prints_available_filters(
         sys.argv = ["unoconverter", "--filter", "asdasdasd", infile, outfile.name]
         try:
             client.converter_main()
-        except Fault as err:
-            assert "Office Open XML Text" in err.faultString
-            assert "writer8" in err.faultString
-            assert "writer_pdf_Export" in err.faultString
+        except RuntimeError:
+            errstr = caplog.text
+            print(errstr)
+            print("=" * 30)
+            assert "Office Open XML Text" in errstr
+            assert "writer8" in errstr
+            assert "writer_pdf_Export" in errstr
 
 
 def test_update_index(server_fixture):
@@ -190,7 +193,7 @@ def test_update_index(server_fixture):
 
 def test_convert_not_local():
     hostname = socket.gethostname()
-    cmd = ["unoserver", "--uno-port=2102", "--port=2103", f"--interface={hostname}"]
+    cmd = ["unoserver", "--uno-port=2104", "--port=2105", f"--interface={hostname}"]
     process = subprocess.Popen(cmd)
     try:
         # Wait for it to start
@@ -205,7 +208,7 @@ def test_convert_not_local():
                 "unoconverter",
                 "--host",
                 hostname,
-                "--port=2103",
+                "--port=2105",
                 infile,
                 outfile.name,
             ]
@@ -226,7 +229,7 @@ def test_convert_not_local():
 
 def test_compare_not_local():
     hostname = socket.gethostname()
-    cmd = ["unoserver", "--uno-port=2102", "--port=2103", f"--interface={hostname}"]
+    cmd = ["unoserver", "--uno-port=2104", "--port=2105", f"--interface={hostname}"]
     process = subprocess.Popen(cmd)
     try:
         # Wait for it to start
@@ -242,7 +245,7 @@ def test_compare_not_local():
                 "unoconverter",
                 "--host",
                 hostname,
-                "--port=2103",
+                "--port=2105",
                 infile1,
                 infile2,
                 outfile.name,

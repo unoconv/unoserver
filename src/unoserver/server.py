@@ -27,11 +27,13 @@ class XMLRPCServer(xmlrpc.server.SimpleXMLRPCServer):
         addr_info = socket.getaddrinfo(addr[0], addr[1], proto=socket.IPPROTO_TCP)
 
         if len(addr_info) == 0:
-            raise RuntimeError(f"Could not get interface information for {addr[0]}:{addr[1]}")
+            raise RuntimeError(
+                f"Could not get interface information for {addr[0]}:{addr[1]}"
+            )
 
         self.address_family = addr_info[0][0]
         self.socket_type = addr_info[0][1]
-        super().__init__(addr=addr_info[0][4], allow_none=allow_none)        
+        super().__init__(addr=addr_info[0][4], allow_none=allow_none)
 
 
 class UnoServer:
@@ -53,6 +55,8 @@ class UnoServer:
         self.xmlrcp_server = None
 
     def start(self, executable="libreoffice"):
+        import time
+
         logger.info(f"Starting unoserver {__version__}.")
 
         connection = (
@@ -98,17 +102,34 @@ class UnoServer:
         if platform.system() != "Windows":
             signal.signal(signal.SIGHUP, signal_handler)
 
+        time.sleep(10)
+
         self.xmlrcp_thread.start()
         return self.libreoffice_process
 
     def serve(self):
         # Create server
-        with XMLRPCServer(
-            (self.interface, int(self.port)), allow_none=True
-        ) as server:
+        with XMLRPCServer((self.interface, int(self.port)), allow_none=True) as server:
             self.xmlrcp_server = server
 
             server.register_introspection_functions()
+
+            @server.register_function
+            def info():
+                conv = converter.UnoConverter(
+                    interface=self.uno_interface, port=self.uno_port
+                )
+                import_filters = conv.get_filter_names(
+                    conv.get_available_import_filters()
+                )
+                export_filters = conv.get_filter_names(
+                    conv.get_available_export_filters()
+                )
+                return {
+                    "unoserver": __version__,
+                    "import_filters": import_filters,
+                    "export_filters": export_filters,
+                }
 
             @server.register_function
             def convert(

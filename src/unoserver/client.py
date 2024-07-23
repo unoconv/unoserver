@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 import sys
+import time
 
 from importlib import metadata
 from xmlrpc.client import ServerProxy
@@ -40,6 +41,29 @@ class UnoClient:
             self.remote = False
         else:
             raise RuntimeError("host_location can be 'auto', 'remote', or 'local'")
+
+    def _connect(self, proxy, retries=5, sleep=10):
+        """Check the connection to the proxy multiple times
+
+        Returns the info() data (unoserver version + filters)"""
+
+        while retries > 0:
+            try:
+                info = proxy.info()
+                if not info["unoserver"] == __version__:
+                    raise RuntimeError(
+                        f"Version mismatch. Client runs {__version__} while "
+                        f"Server runs {info['unoserver']}"
+                    )
+                return info
+            except ConnectionError as e:
+                logger.debug(f"Error {e.strerror}, waiting...")
+                retries -= 1
+                if retries > 0:
+                    time.sleep(sleep)
+                    logger.debug("Retrying...")
+                else:
+                    raise
 
     def convert(
         self,
@@ -95,6 +119,25 @@ class UnoClient:
                 raise ValueError("The outpath can not be a directory")
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
+            info = self._connect(proxy)
+
+            if infiltername and infiltername not in info["import_filters"]:
+                existing = "\n".join(sorted(info["import_filters"]))
+                logger.critical(
+                    f"Unknown import filter: {infiltername}. Available filters:\n{existing}"
+                )
+                raise RuntimeError("Invalid parameter")
+
+            if filtername and filtername not in info["export_filters"]:
+                existing = "\n".join(sorted(info["export_filters"]))
+                logger.critical(
+                    f"Unknown export filter: {filtername}. Available filters:\n{existing}"
+                )
+                raise RuntimeError("Invalid parameter")
+
+            logger.info("Converting.")
             result = proxy.convert(
                 inpath,
                 indata,
@@ -108,11 +151,15 @@ class UnoClient:
             if result is not None:
                 # We got the file back over xmlrpc:
                 if outpath:
+                    logger.info(f"Writing to {outpath}.")
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
                     # Return the result as a blob
+                    logger.info(f"Returning {len(result.data)} bytes.")
                     return result.data
+            else:
+                logger.info(f"Saved to {outpath}.")
 
     def compare(
         self,
@@ -175,6 +222,11 @@ class UnoClient:
             newpath = os.path.abspath(newpath)
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
+            self._connect(proxy)
+
+            logger.info("Comparing.")
             result = proxy.compare(
                 oldpath,
                 olddata,
@@ -186,16 +238,19 @@ class UnoClient:
             if result is not None:
                 # We got the file back over xmlrpc:
                 if outpath:
+                    logger.info(f"Writing to {outpath}.")
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
                     # Return the result as a blob
+                    logger.info(f"Returning {len(result.data)} bytes.")
                     return result.data
+            else:
+                logger.info(f"Saved to {outpath}.")
 
 
 def converter_main():
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
@@ -259,7 +314,29 @@ def converter_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to stderr.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to stderr.",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.INFO)
+    if args.verbose and args.quiet:
+        logger.debug("Make up your mind, yo!")
+
     client = UnoClient(args.host, args.port, args.host_location)
 
     if args.outfile == "-":
@@ -291,7 +368,7 @@ def converter_main():
 
 def comparer_main():
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
@@ -331,7 +408,28 @@ def comparer_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to stderr.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to stderr.",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.INFO)
+    if args.verbose and args.quiet:
+        logger.debug("Make up your mind, yo!")
 
     client = UnoClient(args.host, args.port, args.host_location)
 
