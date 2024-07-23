@@ -56,10 +56,12 @@ class UnoClient:
                         f"Server runs {info['unoserver']}"
                     )
                 return info
-            except ConnectionError:
+            except ConnectionError as e:
+                logger.debug(f"Error {e.strerror}, waiting...")
                 retries -= 1
                 if retries > 0:
                     time.sleep(sleep)
+                    logger.debug("Retrying...")
                 else:
                     raise
 
@@ -117,6 +119,8 @@ class UnoClient:
                 raise ValueError("The outpath can not be a directory")
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
             info = self._connect(proxy)
 
             if infiltername and infiltername not in info["import_filters"]:
@@ -133,6 +137,7 @@ class UnoClient:
                 )
                 raise RuntimeError("Invalid parameter")
 
+            logger.info("Converting.")
             result = proxy.convert(
                 inpath,
                 indata,
@@ -146,11 +151,15 @@ class UnoClient:
             if result is not None:
                 # We got the file back over xmlrpc:
                 if outpath:
+                    logger.info(f"Writing to {outpath}.")
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
                     # Return the result as a blob
+                    logger.info(f"Returning {len(result.data)} bytes.")
                     return result.data
+            else:
+                logger.info(f"Saved to {outpath}.")
 
     def compare(
         self,
@@ -213,8 +222,11 @@ class UnoClient:
             newpath = os.path.abspath(newpath)
 
         with ServerProxy(f"http://{self.server}:{self.port}", allow_none=True) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
             self._connect(proxy)
 
+            logger.info("Comparing.")
             result = proxy.compare(
                 oldpath,
                 olddata,
@@ -226,16 +238,19 @@ class UnoClient:
             if result is not None:
                 # We got the file back over xmlrpc:
                 if outpath:
+                    logger.info(f"Writing to {outpath}.")
                     with open(outpath, "wb") as outfile:
                         outfile.write(result.data)
                 else:
                     # Return the result as a blob
+                    logger.info(f"Returning {len(result.data)} bytes.")
                     return result.data
+            else:
+                logger.info(f"Saved to {outpath}.")
 
 
 def converter_main():
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
 
     parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
@@ -299,7 +314,29 @@ def converter_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to stderr.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to stderr.",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.INFO)
+    if args.verbose and args.quiet:
+        logger.debug("Make up your mind, yo!")
+
     client = UnoClient(args.host, args.port, args.host_location)
 
     if args.outfile == "-":
@@ -331,7 +368,7 @@ def converter_main():
 
 def comparer_main():
     logging.basicConfig()
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
 
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
@@ -371,7 +408,28 @@ def comparer_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to stderr.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to stderr.",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.INFO)
+    if args.verbose and args.quiet:
+        logger.debug("Make up your mind, yo!")
 
     client = UnoClient(args.host, args.port, args.host_location)
 
