@@ -1,5 +1,5 @@
-2.3 (unreleased)
-----------------
+2.2.1 (2024-07-24)
+------------------
 
 - Restored Python 3.8 functionality.
 
