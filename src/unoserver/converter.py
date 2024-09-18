@@ -87,6 +87,8 @@ class UnoConverter:
         self.type_service = self.service.createInstanceWithContext(
             "com.sun.star.document.TypeDetection", self.context
         )
+        self._export_filters = None
+        self._import_filters = None
 
     def find_filter(self, import_type, export_type):
         for export_filter in self.get_available_export_filters():
@@ -103,26 +105,40 @@ class UnoConverter:
         return None
 
     def get_available_import_filters(self):
+        # Doing this call for some reason uses up memory each time, so we do it
+        # only once, and cache it here:
+        if self._import_filters is not None:
+            return self._import_filters
+
         # List import filters. You can only search on module, iflags and eflags,
         # so the import and export types we have to test in a loop
         import_filters = self.filter_service.createSubSetEnumerationByQuery(
             "getSortedFilterList():iflags=1"
         )
 
+        self._import_filters = []
         while import_filters.hasMoreElements():
-            # Filter DocumentService here
-            yield prop2dict(import_filters.nextElement())
+            self._import_filters.append(prop2dict(import_filters.nextElement()))
+
+        return self._import_filters
 
     def get_available_export_filters(self):
+        # Doing this call for some reason uses up memory each time, so we do it
+        # only once, and cache it here:
+        if self._export_filters is not None:
+            return self._export_filters
+
         # List export filters. You can only search on module, iflags and eflags,
         # so the import and export types we have to test in a loop
         export_filters = self.filter_service.createSubSetEnumerationByQuery(
             "getSortedFilterList():iflags=2"
         )
 
+        self._export_filters = []
         while export_filters.hasMoreElements():
-            # Filter DocumentService here
-            yield prop2dict(export_filters.nextElement())
+            self._export_filters.append(prop2dict(export_filters.nextElement()))
+
+        return self._export_filters
 
     def get_filter_names(self, filters):
         names = {}
