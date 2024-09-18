@@ -1,4 +1,4 @@
-2.2.2 (unreleased)
+2.2.2 (2024-09-18)
 ------------------
 
 - Fixed a memory leak in unoserver.
