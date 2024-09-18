@@ -291,7 +291,7 @@ def converter_main():
     parser.add_argument(
         "--update-index",
         action="store_true",
-        help="Updes the indexes before conversion. Can be time consuming.",
+        help="Updates the indexes before conversion. Can be time consuming.",
     )
     parser.add_argument(
         "--dont-update-index",
