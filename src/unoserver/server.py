@@ -107,25 +107,29 @@ class UnoServer:
         time.sleep(10)
 
         self.xmlrcp_thread.start()
+
         return self.libreoffice_process
 
     def serve(self):
         # Create server
         with XMLRPCServer((self.interface, int(self.port)), allow_none=True) as server:
-            self.xmlrcp_server = server
+            self.conv = converter.UnoConverter(
+                interface=self.uno_interface, port=self.uno_port
+            )
+            self.comp = comparer.UnoComparer(
+                interface=self.uno_interface, port=self.uno_port
+            )
 
+            self.xmlrcp_server = server
             server.register_introspection_functions()
 
             @server.register_function
             def info():
-                conv = converter.UnoConverter(
-                    interface=self.uno_interface, port=self.uno_port
+                import_filters = self.conv.get_filter_names(
+                    self.conv.get_available_import_filters()
                 )
-                import_filters = conv.get_filter_names(
-                    conv.get_available_import_filters()
-                )
-                export_filters = conv.get_filter_names(
-                    conv.get_available_export_filters()
+                export_filters = self.conv.get_filter_names(
+                    self.conv.get_available_export_filters()
                 )
                 return {
                     "unoserver": __version__,
@@ -146,10 +150,8 @@ class UnoServer:
             ):
                 if indata is not None:
                     indata = indata.data
-                conv = converter.UnoConverter(
-                    interface=self.uno_interface, port=self.uno_port
-                )
-                result = conv.convert(
+
+                result = self.conv.convert(
                     inpath,
                     indata,
                     outpath,
@@ -174,10 +176,8 @@ class UnoServer:
                     olddata = olddata.data
                 if newdata is not None:
                     newdata = newdata.data
-                comp = comparer.UnoComparer(
-                    interface=self.uno_interface, port=self.uno_port
-                )
-                result = comp.compare(
+
+                result = self.comp.compare(
                     oldpath, olddata, newpath, newdata, outpath, filetype
                 )
                 return result
