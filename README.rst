@@ -84,8 +84,10 @@ Usage
 -----
 
 Installing unoserver installs three scripts, `unoserver`, `unoconverter` and `unocompare`.
-All can also be run as modules with `python3 -m unoserver.server`, `python3 -m unoserver.converter`
-and `python3 -m unoserver.comparer` with the same arguments as the main scripts.
+The server can also be run as a module with `python3 -m unoserver.server`, with the same 
+arguments as the main script, which can be useful as it must be run with the LibreOffice
+provided Python.
+
 
 Unoserver
 ~~~~~~~~~
