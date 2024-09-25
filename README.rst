@@ -31,7 +31,9 @@ Installation
 
 NB! Windows and Mac support is as of yet untested.
 
-Unoserver needs to be installed by and run with the same Python installation that LibreOffice uses.
+Unoserver needs to be installed by and run with the same Python installation that LibreOffice uses,
+to properly run the `unoserver` command. For client/server installations, see below.
+
 On Unix this usually means you can just install it with::
 
    $ sudo -H pip install unoserver
@@ -158,6 +160,17 @@ Unocompare
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 * `-v, --version`: Display version and exit.
+
+
+Client/Server installations
+---------------------------
+
+If you are installing Unoserver on a dedicated machine (virtual or not) to do the conversions and
+are running the commands from a different machine, or if you want to call the convert/compare commands
+from Python directly, the clients do not need access to Libreoffice. You can therefore follow the 
+instructions above to make Unoserver have access to the LibreOffice library, but on the client
+side you can simply install Unoserver as any other Python library, with `python -m pip install unoserver` 
+using the Python you want to use as the client executable. 
 
 
 Development and Testing
