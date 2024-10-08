@@ -195,8 +195,7 @@ class UnoServer:
             server.serve_forever()
 
     def stop(self):
-        if self.libreoffice_process:
-            self.libreoffice_process.terminate()
+
         if self.xmlrcp_server is not None:
             self.xmlrcp_server.shutdown()
             # Make a dummy connection to unblock accept() - otherwise it will
@@ -209,8 +208,17 @@ class UnoServer:
                     pass
             except Exception:
                 pass  # Ignore any except
+
         if self.xmlrcp_thread is not None:
             self.xmlrcp_thread.join()
+
+        if self.libreoffice_process and self.libreoffice_process.poll() is not None:
+            self.libreoffice_process.terminate()
+            try:
+                self.libreoffice_process.wait(10)
+            except subprocess.TimeoutExpired:
+                logger.info("Signalling harder...")
+                self.libreoffice_process.terminate()
 
 
 def main():
@@ -305,7 +313,6 @@ def main():
 
         # The RPC thread needs to be stopped before the process can exit
         server.stop()
-
         if args.libreoffice_pid_file:
             # Remove the PID file
             os.unlink(args.libreoffice_pid_file)
