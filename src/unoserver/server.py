@@ -55,6 +55,7 @@ class UnoServer:
         self.libreoffice_process = None
         self.xmlrcp_thread = None
         self.xmlrcp_server = None
+        self.intentional_exit = False
 
     def start(self, executable="libreoffice"):
         import time
@@ -86,6 +87,7 @@ class UnoServer:
         self.xmlrcp_thread = threading.Thread(None, self.serve)
 
         def signal_handler(signum, frame):
+            self.intentional_exit = True
             logger.info("Sending signal to LibreOffice")
             try:
                 self.libreoffice_process.send_signal(signum)
@@ -107,6 +109,14 @@ class UnoServer:
         time.sleep(10)
 
         self.xmlrcp_thread.start()
+
+        # Give the thread time to start
+        time.sleep(2)
+        # Check if it succeeded
+        if not self.xmlrcp_thread.is_alive():
+            logger.info("Failed to start servers")
+            self.stop()
+            return None
 
         return self.libreoffice_process
 
@@ -193,7 +203,9 @@ class UnoServer:
             # hang indefinitely in the accept() call.
             # noinspection PyBroadException
             try:
-                with socket.create_connection((self.interface, int(self.port)), timeout=1):
+                with socket.create_connection(
+                    (self.interface, int(self.port)), timeout=1
+                ):
                     pass
             except Exception:
                 pass  # Ignore any except
@@ -276,6 +288,8 @@ def main():
         # It returns 0 of getting killed in a normal way.
         # Otherwise it returns 1 after the process exits.
         process = server.start(executable=args.executable)
+        if process is None:
+            return 2
         pid = process.pid
 
         logger.info(f"Server PID: {pid}")
@@ -285,6 +299,9 @@ def main():
                 upf.write(f"{pid}")
 
         process.wait()
+
+        if not server.intentional_exit:
+            logger.error(f"Looks like LibreOffice died. PID: {pid}")
 
         # The RPC thread needs to be stopped before the process can exit
         server.stop()
@@ -296,8 +313,11 @@ def main():
         try:
             # Make sure it's really dead
             os.kill(pid, 0)
-            # It was killed
-            return 0
+
+            if server.intentional_exit:
+                return 0
+            else:
+                return 1
         except OSError as e:
             if e.errno == 3:
                 # All good, it was already dead.
