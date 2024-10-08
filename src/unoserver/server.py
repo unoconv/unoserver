@@ -95,7 +95,7 @@ class UnoServer:
                     raise
 
             if self.xmlrcp_server is not None:
-                self.xmlrcp_server.shutdown()
+                self.stop()  # Ensure the server stops
 
         signal.signal(signal.SIGTERM, signal_handler)
         signal.signal(signal.SIGINT, signal_handler)
@@ -189,6 +189,14 @@ class UnoServer:
             self.libreoffice_process.terminate()
         if self.xmlrcp_server is not None:
             self.xmlrcp_server.shutdown()
+            # Make a dummy connection to unblock accept() - otherwise it will
+            # hang indefinitely in the accept() call.
+            # noinspection PyBroadException
+            try:
+                with socket.create_connection((self.interface, int(self.port)), timeout=1):
+                    pass
+            except Exception:
+                pass  # Ignore any except
         if self.xmlrcp_thread is not None:
             self.xmlrcp_thread.join()
 
@@ -277,6 +285,9 @@ def main():
                 upf.write(f"{pid}")
 
         process.wait()
+
+        # The RPC thread needs to be stopped before the process can exit
+        server.stop()
 
         if args.libreoffice_pid_file:
             # Remove the PID file
