@@ -1,6 +1,9 @@
 2.3 (unreleased)
 ----------------
 
+- Added a --conversion-timeout argument to ``unoserver``, which causes unoserver
+  to fail if a conversion doesn't finish within a certain time.
+
 - By default it will now use the `soffice`` executable instead of `libreoffice`,
   as I had a problem with it using 100% load when started as `libreoffice`.
 

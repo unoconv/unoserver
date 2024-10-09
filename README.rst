@@ -86,7 +86,7 @@ Usage
 -----
 
 Installing unoserver installs three scripts, `unoserver`, `unoconverter` and `unocompare`.
-The server can also be run as a module with `python3 -m unoserver.server`, with the same 
+The server can also be run as a module with `python3 -m unoserver.server`, with the same
 arguments as the main script, which can be useful as it must be run with the LibreOffice
 provided Python.
 
@@ -109,6 +109,7 @@ Unoserver
 * `--user-installation`: The path to the LibreOffice user profile, defaults to a dynamically created temporary directory
 * `--libreoffice-pid-file`: If set, unoserver will write the Libreoffice PID to this file.
   If started in daemon mode, the file will not be deleted when unoserver exits.
+* `--conversion-timeout`: Terminate Libreoffice and exit if a conversion does not complete in the given time (in seconds).
 * `-v, --version`: Display version and exit.
 
 Unoconvert
@@ -167,10 +168,21 @@ Client/Server installations
 
 If you are installing Unoserver on a dedicated machine (virtual or not) to do the conversions and
 are running the commands from a different machine, or if you want to call the convert/compare commands
-from Python directly, the clients do not need access to Libreoffice. You can therefore follow the 
+from Python directly, the clients do not need access to Libreoffice. You can therefore follow the
 instructions above to make Unoserver have access to the LibreOffice library, but on the client
-side you can simply install Unoserver as any other Python library, with `python -m pip install unoserver` 
-using the Python you want to use as the client executable. 
+side you can simply install Unoserver as any other Python library, with `python -m pip install unoserver`
+using the Python you want to use as the client executable.
+
+Please note that there is no security on either ports used, and as a result Unoserver is vulnerable
+to DDOS attacks, and possibly worse. The ports used **must not** be accessible to anything outside the
+server stack being used.
+
+Unoserver is designed to be started by some service management software, such as Supervisor or similar,
+that will restart the service should it crash. Unoserver does not try to restart LibreOffice if it
+crashes, but should instead also stop in that sitution. The ``--conversion-timeout`` argument will
+teminate LibreOffice if it takes to long to convert a document, and that termination will also result
+in Unoserver quitting. Because of this service monitoring software should be set up to restart
+Unoserver when it exits.
 
 
 Development and Testing
