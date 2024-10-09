@@ -1,4 +1,4 @@
-2.2.3 (unreleased)
+2.3b1 (2024-10-09)
 ------------------
 
 - Much better handling of LibreOffice crashing or failing to start.
