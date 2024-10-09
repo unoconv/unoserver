@@ -1,7 +1,7 @@
 2.2.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Much better handling of LibreOffice crashing or failing to start.
 
 
 2.2.2 (2024-09-18)

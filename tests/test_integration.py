@@ -107,7 +107,7 @@ def test_multiple_servers(server_fixture):
         # Now kill the process
         process.terminate()
         # Wait for it to terminate
-        process.wait()
+        process.wait(30)
         # And verify that it was killed
         assert process.returncode == 0
 
@@ -222,7 +222,7 @@ def test_convert_not_local():
         # Now kill the process
         process.terminate()
         # Wait for it to terminate
-        process.wait()
+        process.wait(30)
         # And verify that it was killed
         assert process.returncode == 0
 
@@ -262,6 +262,6 @@ def skip_test_compare_not_local():
         # Now kill the process
         process.terminate()
         # Wait for it to terminate
-        process.wait()
+        process.wait(30)
         # And verify that it was killed
         assert process.returncode == 0
