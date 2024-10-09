@@ -188,6 +188,9 @@ class UnoConverter:
         You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
+        import time
+
+        time.sleep(3)
         if infiltername:
             infilters = self.get_filter_names(self.get_available_import_filters())
             if infiltername in infilters:
@@ -327,6 +330,7 @@ class UnoConverter:
                         ),
                     ),
                 )
+            time.sleep(3)
             document.storeToURL(export_path, output_props)
 
         finally:

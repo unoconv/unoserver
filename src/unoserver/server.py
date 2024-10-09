@@ -14,6 +14,8 @@ import xmlrpc.server
 from importlib import metadata
 from pathlib import Path
 
+from concurrent import futures
+
 from unoserver import converter, comparer
 
 __version__ = metadata.version("unoserver")
@@ -161,17 +163,23 @@ class UnoServer:
                 if indata is not None:
                     indata = indata.data
 
-                result = self.conv.convert(
-                    inpath,
-                    indata,
-                    outpath,
-                    convert_to,
-                    filtername,
-                    filter_options,
-                    update_index,
-                    infiltername,
-                )
-                return result
+                with futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        self.conv.convert,
+                        inpath,
+                        indata,
+                        outpath,
+                        convert_to,
+                        filtername,
+                        filter_options,
+                        update_index,
+                        infiltername,
+                    )
+                    try:
+                        return future.result(timeout=1)
+                    except futures.TimeoutError:
+                        self.libreoffice_process.send_signal(signal.SIGKILL)
+                        raise
 
             @server.register_function
             def compare(
