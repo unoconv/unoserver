@@ -1,8 +1,8 @@
 2.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
-
+- By default it will now use the `soffice`` executable instead of `libreoffice`,
+  as I had a problem with it using 100% load when started as `libreoffice`.
 
 2.3b1 (2024-10-09)
 ------------------
