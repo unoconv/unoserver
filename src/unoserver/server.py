@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import shutil
 import signal
 import socket
 import subprocess
@@ -252,8 +253,8 @@ def main():
     parser.add_argument("--daemon", action="store_true", help="Deamonize the server")
     parser.add_argument(
         "--executable",
-        default="libreoffice",
-        help="The path to the LibreOffice executable",
+        default=None,
+        help="The path to the LibreOffice executable, defaults to looking in the path",
     )
     parser.add_argument(
         "--user-installation",
@@ -292,10 +293,22 @@ def main():
             user_installation,
         )
 
+        if args.executable is not None:
+            executable = args.executable
+        else:
+            # Find the executable automatically. I had problems with
+            # LibreOffice using 100% if started with the libreoffice
+            # executable, so by default try soffice first. Also throwing
+            # ooffice in there as a fallback, I don't think it's used any
+            # more, but it doesn't hurt to have it there.
+            for name in ("soffice", "libreoffice", "ooffice"):
+                if (executable := shutil.which(name)) is not None:
+                    break
+
         # If it's daemonized, this returns the process.
         # It returns 0 of getting killed in a normal way.
         # Otherwise it returns 1 after the process exits.
-        process = server.start(executable=args.executable)
+        process = server.start(executable=executable)
         if process is None:
             return 2
         pid = process.pid
