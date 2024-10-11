@@ -1,5 +1,5 @@
-2.3 (unreleased)
-----------------
+3.0b1 (2024-10-11)
+------------------
 
 - Added a --conversion-timeout argument to ``unoserver``, which causes unoserver
   to fail if a conversion doesn't finish within a certain time.
