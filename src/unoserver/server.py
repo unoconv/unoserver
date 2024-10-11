@@ -16,6 +16,8 @@ import xmlrpc.server
 from importlib import metadata
 from pathlib import Path
 
+from concurrent import futures
+
 from unoserver import converter, comparer
 
 __version__ = metadata.version("unoserver")
@@ -48,12 +50,14 @@ class UnoServer:
         uno_interface="127.0.0.1",
         uno_port="2002",
         user_installation=None,
+        conversion_timeout=None,
     ):
         self.interface = interface
         self.uno_interface = uno_interface
         self.port = port
         self.uno_port = uno_port
         self.user_installation = user_installation
+        self.conversion_timeout = conversion_timeout
         self.libreoffice_process = None
         self.xmlrcp_thread = None
         self.xmlrcp_server = None
@@ -161,17 +165,27 @@ class UnoServer:
                 if indata is not None:
                     indata = indata.data
 
-                result = self.conv.convert(
-                    inpath,
-                    indata,
-                    outpath,
-                    convert_to,
-                    filtername,
-                    filter_options,
-                    update_index,
-                    infiltername,
-                )
-                return result
+                with futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        self.conv.convert,
+                        inpath,
+                        indata,
+                        outpath,
+                        convert_to,
+                        filtername,
+                        filter_options,
+                        update_index,
+                        infiltername,
+                    )
+                    try:
+                        return future.result(timeout=self.conversion_timeout)
+                    except futures.TimeoutError:
+                        logger.error(
+                            "Conversion timeout, terminating conversion and exiting."
+                        )
+                        self.conv.local_context.dispose()
+                        self.libreoffice_process.terminate()
+                        raise
 
             @server.register_function
             def compare(
@@ -187,10 +201,25 @@ class UnoServer:
                 if newdata is not None:
                     newdata = newdata.data
 
-                result = self.comp.compare(
-                    oldpath, olddata, newpath, newdata, outpath, filetype
-                )
-                return result
+                with futures.ThreadPoolExecutor() as executor:
+                    future = executor.submit(
+                        self.comp.compare,
+                        oldpath,
+                        olddata,
+                        newpath,
+                        newdata,
+                        outpath,
+                        filetype,
+                    )
+                try:
+                    return future.result(timeout=self.conversion_timeout)
+                except futures.TimeoutError:
+                    logger.error(
+                        "Comparison timeout, terminating conversion and exiting."
+                    )
+                    self.conv.local_context.dispose()
+                    self.libreoffice_process.terminate()
+                    raise
 
             server.serve_forever()
 
@@ -267,6 +296,12 @@ def main():
         help="If set, unoserver will write the Libreoffice PID to this file. If started "
         "in daemon mode, the file will not be deleted when unoserver exits.",
     )
+    parser.add_argument(
+        "--conversion-timeout",
+        type=int,
+        help="Terminate Libreoffice and exit if a conversion does not complete in the "
+        "given time (in seconds).",
+    )
     args = parser.parse_args()
 
     if args.daemon:
@@ -290,6 +325,7 @@ def main():
             args.uno_interface,
             args.uno_port,
             user_installation,
+            args.conversion_timeout,
         )
 
         if args.executable is not None:
