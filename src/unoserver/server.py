@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import time
 import platform
 import xmlrpc.server
 from importlib import metadata
@@ -59,8 +60,6 @@ class UnoServer:
         self.intentional_exit = False
 
     def start(self, executable="libreoffice"):
-        import time
-
         logger.info(f"Starting unoserver {__version__}.")
 
         connection = (
