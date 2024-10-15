@@ -1,7 +1,8 @@
 3.0b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Implementing a separate API version for more version flexibility, as I'm
+  releasing more often than I expected.
 
 
 3.0b1 (2024-10-11)

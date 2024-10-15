@@ -7,6 +7,8 @@ import time
 from importlib import metadata
 from xmlrpc.client import ServerProxy
 
+from .server import API_VERSION
+
 __version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
 
@@ -50,10 +52,10 @@ class UnoClient:
         while retries > 0:
             try:
                 info = proxy.info()
-                if not info["unoserver"] == __version__:
+                if not info["api"] == API_VERSION:
                     raise RuntimeError(
-                        f"Version mismatch. Client runs {__version__} while "
-                        f"Server runs {info['unoserver']}"
+                        f"API Version mismatch. Client {__version__} uses API {API_VERSION} "
+                        f"while Server {info['unoserver']} uses API {info['api']}."
                     )
                 return info
             except ConnectionError as e:
