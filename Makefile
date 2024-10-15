@@ -30,7 +30,7 @@ coverage: devenv
 	$(bin_dir)/coverage report
 
 test: devenv
-	$(bin_dir)/pytest
+	PATH=$(bin_dir):$$PATH $(bin_dir)/pytest
 
 release: devenv
 	$(bin_dir)/fullrelease

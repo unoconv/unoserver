@@ -20,6 +20,7 @@ from concurrent import futures
 
 from unoserver import converter, comparer
 
+API_VERSION = "3"
 __version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
 
@@ -147,6 +148,7 @@ class UnoServer:
                 )
                 return {
                     "unoserver": __version__,
+                    "api": API_VERSION,
                     "import_filters": import_filters,
                     "export_filters": export_filters,
                 }
