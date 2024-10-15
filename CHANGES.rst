@@ -1,4 +1,4 @@
-3.0b2 (unreleased)
+3.0b2 (2024-10-15)
 ------------------
 
 - Implementing a separate API version for more version flexibility, as I'm
