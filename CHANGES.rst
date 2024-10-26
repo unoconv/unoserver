@@ -1,5 +1,5 @@
-3.1 (unreleased)
-----------------
+3.0.1 (2024-10-26)
+------------------
 
 - Accidentally import uno library where it isn't needed.
 
