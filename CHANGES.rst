@@ -1,7 +1,7 @@
 3.1 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Accidentally import uno library where it isn't needed.
 
 
 3.0 (2024-10-22)

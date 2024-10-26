@@ -7,11 +7,10 @@ import time
 from importlib import metadata
 from xmlrpc.client import ServerProxy
 
-from .server import API_VERSION
-
 __version__ = metadata.version("unoserver")
 logger = logging.getLogger("unoserver")
 
+API_VERSION = "3"
 SFX_FILTER_IMPORT = 1
 SFX_FILTER_EXPORT = 2
 DOC_TYPES = {
