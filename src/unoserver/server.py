@@ -66,10 +66,6 @@ class UnoServer:
         self.xmlrcp_server = None
         self.intentional_exit = False
 
-        if self.stop_after is not None:
-            self.thread_lock = threading.Lock()
-            self.number_of_requests = 0
-
     def start(self, executable="libreoffice"):
         logger.info(f"Starting unoserver {__version__}.")
 
@@ -144,18 +140,19 @@ class UnoServer:
             self.xmlrcp_server = server
             server.register_introspection_functions()
 
+            self.number_of_requests = 0
+
             def stop_after():
                 if self.stop_after is None:
                     return
-                with self.thread_lock:
-                    self.number_of_requests += 1
-                    if self.number_of_requests == self.stop_after:
-                        logger.info(
-                            "Processed %d requests, exiting.",
-                            self.stop_after,
-                        )
-                        self.intentional_exit = True
-                        self.libreoffice_process.terminate()
+                self.number_of_requests += 1
+                if self.number_of_requests == self.stop_after:
+                    logger.info(
+                        "Processed %d requests, exiting.",
+                        self.stop_after,
+                    )
+                    self.intentional_exit = True
+                    self.libreoffice_process.terminate()
 
             @server.register_function
             def info():
