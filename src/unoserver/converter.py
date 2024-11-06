@@ -300,8 +300,17 @@ class UnoConverter:
             )
 
             filter_data = []
+            output_props = (
+                PropertyValue(Name="FilterName", Value=filtername),
+                PropertyValue(Name="Overwrite", Value=True),
+            )
             for option in filter_options:
                 option_name, option_value = option.split("=", maxsplit=1)
+                if option_name == "EmbedImages" and option_value != "false":
+                    output_props += (
+                        PropertyValue(Name="FilterOptions", Value="EmbedImages"),
+                    )
+                    continue
                 if option_value == "false":
                     option_value = False
                 elif option_value == "true":
@@ -309,10 +318,6 @@ class UnoConverter:
                 elif option_value.isdecimal():
                     option_value = int(option_value)
                 filter_data.append(PropertyValue(Name=option_name, Value=option_value))
-            output_props = (
-                PropertyValue(Name="FilterName", Value=filtername),
-                PropertyValue(Name="Overwrite", Value=True),
-            )
             if outpath is None:
                 output_stream = OutputStream()
                 output_props += (
