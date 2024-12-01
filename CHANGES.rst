@@ -1,7 +1,7 @@
 3.0.2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Support nameless filter options, eg for CSV export.
 
 
 3.0.1 (2024-10-26)
