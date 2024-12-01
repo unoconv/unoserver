@@ -141,6 +141,14 @@ Example for setting PNG width/height::
 
   unoconvert infile.odt outfile.png --filter-options PixelWidth=640 --filter-options PixelHeight=480
 
+Example for setting CSV output options::
+
+  unoconvert infile.xlsx outfile.csv --filter-options "59,34,76,1"
+
+Example for HTML export with embedded images::
+
+  unoconvert infile.odt outfile.html --filter-options EmbedImages
+
 
 Unocompare
 ~~~~~~~~~~
