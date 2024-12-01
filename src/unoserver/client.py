@@ -286,8 +286,8 @@ def converter_main():
         "--filter-option",
         default=[],
         action="append",
-        help="Pass an option for the export filter, in name=value format. Use true/false for boolean values. "
-        "Can be repeated for multiple options.",
+        help="Pass an option for the export filter, in name=value format, or for positional parameters, "
+        "a comma separated list. Use true/false for boolean values. Can be repeated for multiple options.",
     )
     parser.add_argument(
         "--update-index",
