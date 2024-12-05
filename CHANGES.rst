@@ -1,5 +1,5 @@
-3.0.2 (2024-12-01)
-------------------
+3.1 (2024-12-01)
+----------------
 
 - Support nameless filter options, eg for CSV export.
 
