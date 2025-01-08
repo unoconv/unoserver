@@ -30,6 +30,7 @@ class XMLRPCServer(xmlrpc.server.SimpleXMLRPCServer):
         self,
         addr: tuple[str, int],
         allow_none: bool = False,
+        log_requests: bool = True,
     ) -> None:
         addr_info = socket.getaddrinfo(addr[0], addr[1], proto=socket.IPPROTO_TCP)
 
@@ -40,7 +41,7 @@ class XMLRPCServer(xmlrpc.server.SimpleXMLRPCServer):
 
         self.address_family = addr_info[0][0]
         self.socket_type = addr_info[0][1]
-        super().__init__(addr=addr_info[0][4], allow_none=allow_none)
+        super().__init__(addr=addr_info[0][4], allow_none=allow_none, logRequests=log_requests)
 
 
 class UnoServer:
@@ -52,6 +53,7 @@ class UnoServer:
         uno_port="2002",
         user_installation=None,
         conversion_timeout=None,
+        log_requests=True,
     ):
         self.interface = interface
         self.uno_interface = uno_interface
@@ -63,6 +65,7 @@ class UnoServer:
         self.xmlrcp_thread = None
         self.xmlrcp_server = None
         self.intentional_exit = False
+        self.log_requests = log_requests
 
     def start(self, executable="libreoffice"):
         logger.info(f"Starting unoserver {__version__}.")
@@ -127,7 +130,7 @@ class UnoServer:
 
     def serve(self):
         # Create server
-        with XMLRPCServer((self.interface, int(self.port)), allow_none=True) as server:
+        with XMLRPCServer((self.interface, int(self.port)), allow_none=True, log_requests=self.log_requests) as server:
             self.conv = converter.UnoConverter(
                 interface=self.uno_interface, port=self.uno_port
             )
@@ -337,6 +340,7 @@ def main():
             args.uno_port,
             user_installation,
             args.conversion_timeout,
+            log_requests=not args.silent,
         )
 
         if args.executable is not None:
