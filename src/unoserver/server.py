@@ -304,6 +304,12 @@ def main():
         help="Terminate Libreoffice and exit if a conversion does not complete in the "
         "given time (in seconds).",
     )
+    parser.add_argument(
+        "-s",
+        "--silent",
+        action="store_true",
+        help="Suppress all output except for errors.",
+    )
     args = parser.parse_args()
 
     if args.daemon:
@@ -311,6 +317,9 @@ def main():
         cmd.remove("--daemon")
         proc = subprocess.Popen(cmd)
         return proc.pid
+
+    if args.silent:
+        logger.setLevel(logging.ERROR)
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
         user_installation = Path(tmpuserdir).as_uri()
