@@ -19,6 +19,7 @@ from pathlib import Path
 from concurrent import futures
 
 from unoserver import converter, comparer
+from com.sun.star.uno import Exception as UnoException
 
 API_VERSION = "3"
 __version__ = metadata.version("unoserver")
@@ -111,7 +112,7 @@ class UnoServer:
         if platform.system() != "Windows":
             signal.signal(signal.SIGHUP, signal_handler)
 
-        time.sleep(10)
+        time.sleep(5)
 
         self.xmlrcp_thread.start()
 
@@ -128,12 +129,61 @@ class UnoServer:
     def serve(self):
         # Create server
         with XMLRPCServer((self.interface, int(self.port)), allow_none=True) as server:
-            self.conv = converter.UnoConverter(
-                interface=self.uno_interface, port=self.uno_port
-            )
-            self.comp = comparer.UnoComparer(
-                interface=self.uno_interface, port=self.uno_port
-            )
+            logger.info("Starting UnoConverter.")
+            attempts = 20
+            while attempts > 0:
+                try:
+                    self.conv = converter.UnoConverter(
+                        interface=self.uno_interface, port=self.uno_port
+                    )
+                    break
+                except UnoException as e:
+                    # A connection refused just means it hasn't started yet:
+                    if "Connection refused" in str(e):
+                        logger.debug("Libreoffice is not yet started")
+                        time.sleep(2)
+                        attempts -= 1
+                        continue
+                    # This is a different error
+                    logger.warning("Error when starting UnoConverter, retrying: %s", e)
+                    # These kinds of errors can be retried fewer times
+                    attempts -= 4
+                    time.sleep(5)
+                    continue
+            else:
+                # We ran out of attempts
+                logger.critical("Could not start Libreoffice, exiting.")
+                # Make sure it's really dead
+                self.libreoffice_process.terminate()
+                return
+
+            logger.info("Starting UnoComparer.")
+            attempts = 20
+            while attempts > 0:
+                try:
+                    self.comp = comparer.UnoComparer(
+                        interface=self.uno_interface, port=self.uno_port
+                    )
+                    break
+                except UnoException as e:
+                    # A connection refused just means it hasn't started yet:
+                    if "Connection refused" in str(e):
+                        logger.debug("Libreoffice is not yet started")
+                        attempts -= 1
+                        time.sleep(2)
+                        continue
+                    # This is a different error
+                    logger.warning("Error when starting UnoConverter, retrying: %s", e)
+                    # These kinds of errors can be retried fewer times
+                    attempts -= 4
+                    time.sleep(5)
+                    continue
+            else:
+                # We ran out of attempts
+                logger.critical("Could not start Libreoffice, exiting.")
+                # Make sure it's really dead
+                self.libreoffice_process.terminate()
+                return
 
             self.xmlrcp_server = server
             server.register_introspection_functions()
@@ -223,6 +273,7 @@ class UnoServer:
                     self.libreoffice_process.terminate()
                     raise
 
+            logger.info("Started.")
             server.serve_forever()
 
     def stop(self):

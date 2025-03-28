@@ -68,8 +68,6 @@ class UnoConverter:
     """
 
     def __init__(self, interface="127.0.0.1", port="2002"):
-        logger.info("Starting UnoConverter.")
-
         self.local_context = uno.getComponentContext()
         self.resolver = self.local_context.ServiceManager.createInstanceWithContext(
             "com.sun.star.bridge.UnoUrlResolver", self.local_context
@@ -317,9 +315,13 @@ class UnoConverter:
                     option_value = int(option_value)
 
                 if option_name is not None:
-                    export_filter_data.append(PropertyValue(Name=option_name, Value=option_value))
+                    export_filter_data.append(
+                        PropertyValue(Name=option_name, Value=option_value)
+                    )
                 else:
-                    export_filter_options.append(PropertyValue(Name="FilterOptions", Value=option_value))
+                    export_filter_options.append(
+                        PropertyValue(Name="FilterOptions", Value=option_value)
+                    )
 
             output_props = (
                 PropertyValue(Name="FilterName", Value=filtername),
@@ -335,7 +337,8 @@ class UnoConverter:
                     PropertyValue(
                         Name="FilterData",
                         Value=uno.Any(
-                            "[]com.sun.star.beans.PropertyValue", tuple(export_filter_data)
+                            "[]com.sun.star.beans.PropertyValue",
+                            tuple(export_filter_data),
                         ),
                     ),
                 )
