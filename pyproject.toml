@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "unoserver"
-version = "3.1"
+version = "3.2b1"
 description = "A server for file conversions with Libre Office"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
