@@ -355,7 +355,28 @@ def main():
         help="Terminate Libreoffice and exit if a conversion does not complete in the "
         "given time (in seconds).",
     )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to stderr.",
+    )
+    parser.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to stderr.",
+    )
     args = parser.parse_args()
+
+    if args.verbose:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.CRITICAL)
+    else:
+        logger.setLevel(logging.INFO)
+    if args.verbose and args.quiet:
+        logger.debug("Make up your mind, yo!")
 
     if args.daemon:
         cmd = sys.argv

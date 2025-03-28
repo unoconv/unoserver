@@ -1,7 +1,7 @@
 3.2b2 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added --verbose and --quiet parameters to unoserver.
 
 
 3.2b1 (2025-03-28)
