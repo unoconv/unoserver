@@ -60,8 +60,6 @@ class UnoComparer:
     """
 
     def __init__(self, interface="127.0.0.1", port="2002"):
-        logger.info("Starting UnoComparer.")
-
         self.local_context = uno.getComponentContext()
         self.resolver = self.local_context.ServiceManager.createInstanceWithContext(
             "com.sun.star.bridge.UnoUrlResolver", self.local_context

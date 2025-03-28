@@ -1,3 +1,9 @@
+3.2 (Unreleased)
+----------------
+
+- Better handling of fast and slow LibreOffice startup times.
+  Faster on fast PC's more stable on slow PC's.
+
 3.1 (2024-12-01)
 ----------------
 
