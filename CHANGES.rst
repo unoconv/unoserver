@@ -1,5 +1,11 @@
-3.2 (Unreleased)
-----------------
+3.2b2 (unreleased)
+------------------
+
+- Added --verbose and --quiet parameters to unoserver.
+
+
+3.2b1 (2025-03-28)
+------------------
 
 - Better handling of fast and slow LibreOffice startup times.
   Faster on fast PC's more stable on slow PC's.
