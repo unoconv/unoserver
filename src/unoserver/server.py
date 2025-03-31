@@ -53,6 +53,7 @@ class UnoServer:
         uno_port="2002",
         user_installation=None,
         conversion_timeout=None,
+        stop_after=None,
     ):
         self.interface = interface
         self.uno_interface = uno_interface
@@ -60,6 +61,7 @@ class UnoServer:
         self.uno_port = uno_port
         self.user_installation = user_installation
         self.conversion_timeout = conversion_timeout
+        self.stop_after = stop_after
         self.libreoffice_process = None
         self.xmlrcp_thread = None
         self.xmlrcp_server = None
@@ -188,6 +190,20 @@ class UnoServer:
             self.xmlrcp_server = server
             server.register_introspection_functions()
 
+            self.number_of_requests = 0
+
+            def stop_after():
+                if self.stop_after is None:
+                    return
+                self.number_of_requests += 1
+                if self.number_of_requests == self.stop_after:
+                    logger.info(
+                        "Processed %d requests, exiting.",
+                        self.stop_after,
+                    )
+                    self.intentional_exit = True
+                    self.libreoffice_process.terminate()
+
             @server.register_function
             def info():
                 import_filters = self.conv.get_filter_names(
@@ -230,7 +246,7 @@ class UnoServer:
                         infiltername,
                     )
                     try:
-                        return future.result(timeout=self.conversion_timeout)
+                        result = future.result(timeout=self.conversion_timeout)
                     except futures.TimeoutError:
                         logger.error(
                             "Conversion timeout, terminating conversion and exiting."
@@ -238,6 +254,9 @@ class UnoServer:
                         self.conv.local_context.dispose()
                         self.libreoffice_process.terminate()
                         raise
+                    else:
+                        stop_after()
+                        return result
 
             @server.register_function
             def compare(
@@ -264,7 +283,7 @@ class UnoServer:
                         filetype,
                     )
                 try:
-                    return future.result(timeout=self.conversion_timeout)
+                    result = future.result(timeout=self.conversion_timeout)
                 except futures.TimeoutError:
                     logger.error(
                         "Comparison timeout, terminating conversion and exiting."
@@ -272,6 +291,9 @@ class UnoServer:
                     self.conv.local_context.dispose()
                     self.libreoffice_process.terminate()
                     raise
+                else:
+                    stop_after()
+                    return result
 
             logger.info("Started.")
             server.serve_forever()
@@ -356,6 +378,11 @@ def main():
         "given time (in seconds).",
     )
     parser.add_argument(
+        "--stop-after",
+        type=int,
+        help="Terminate Libreoffice and exit after the given number of requests.",
+    )
+    parser.add_argument(
         "--verbose",
         action="store_true",
         dest="verbose",
@@ -400,6 +427,7 @@ def main():
             args.uno_port,
             user_installation,
             args.conversion_timeout,
+            args.stop_after,
         )
 
         if args.executable is not None:
