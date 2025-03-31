@@ -1,7 +1,9 @@
 3.2b3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Added a `--stop-after` parameter, that makes unoserver quit after a certain
+  number of requests. This is useful if you want to minimize memory usage, as
+  memory usage after a large file is not reclaimed automatically. [Witiko]
 
 
 3.2b2 (2025-03-28)

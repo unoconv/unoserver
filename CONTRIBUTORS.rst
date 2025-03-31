@@ -12,3 +12,4 @@ Contributors
 * BohwaZ, https://github.com/bohwaz
 * ReeceJones, https://github.com/ReeceJones
 * Grunthos, https://github.com/Grunthos
+* Witiko, https://github.com/Witiko
