@@ -68,8 +68,6 @@ class UnoConverter:
     """
 
     def __init__(self, interface="127.0.0.1", port="2002"):
-        logger.info("Starting UnoConverter.")
-
         self.local_context = uno.getComponentContext()
         self.resolver = self.local_context.ServiceManager.createInstanceWithContext(
             "com.sun.star.bridge.UnoUrlResolver", self.local_context
@@ -299,16 +297,32 @@ class UnoConverter:
                 f"Using {filtername} export filter from {infiltername} to {export_type}"
             )
 
-            filter_data = []
+            export_filter_data = []
+            export_filter_options = []
+
             for option in filter_options:
-                option_name, option_value = option.split("=", maxsplit=1)
+                if "=" in option:
+                    option_name, option_value = option.split("=", maxsplit=1)
+                else:
+                    option_name = None
+                    option_value = option
+
                 if option_value == "false":
                     option_value = False
                 elif option_value == "true":
                     option_value = True
                 elif option_value.isdecimal():
                     option_value = int(option_value)
-                filter_data.append(PropertyValue(Name=option_name, Value=option_value))
+
+                if option_name is not None:
+                    export_filter_data.append(
+                        PropertyValue(Name=option_name, Value=option_value)
+                    )
+                else:
+                    export_filter_options.append(
+                        PropertyValue(Name="FilterOptions", Value=option_value)
+                    )
+
             output_props = (
                 PropertyValue(Name="FilterName", Value=filtername),
                 PropertyValue(Name="Overwrite", Value=True),
@@ -318,15 +332,19 @@ class UnoConverter:
                 output_props += (
                     PropertyValue(Name="OutputStream", Value=output_stream),
                 )
-            if filter_data:
+            if export_filter_data:
                 output_props += (
                     PropertyValue(
                         Name="FilterData",
                         Value=uno.Any(
-                            "[]com.sun.star.beans.PropertyValue", tuple(filter_data)
+                            "[]com.sun.star.beans.PropertyValue",
+                            tuple(export_filter_data),
                         ),
                     ),
                 )
+            if export_filter_options:
+                output_props += tuple(export_filter_options)
+
             document.storeToURL(export_path, output_props)
 
         finally:

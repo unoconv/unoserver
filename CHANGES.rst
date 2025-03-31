@@ -1,7 +1,25 @@
-3.0.2 (unreleased)
+3.2b3 (unreleased)
 ------------------
 
 - Nothing changed yet.
+
+
+3.2b2 (2025-03-28)
+------------------
+
+- Added --verbose and --quiet parameters to unoserver.
+
+
+3.2b1 (2025-03-28)
+------------------
+
+- Better handling of fast and slow LibreOffice startup times.
+  Faster on fast PC's more stable on slow PC's.
+
+3.1 (2024-12-01)
+----------------
+
+- Support nameless filter options, eg for CSV export.
 
 
 3.0.1 (2024-10-26)

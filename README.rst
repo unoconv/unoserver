@@ -129,7 +129,7 @@ Unoconvert
 * `--input-filter`: The LibreOffice input filter to use (ex 'writer8'), if autodetect fails
 * `--output-filter`: The export filter to use when converting. It is selected automatically if not specified.
 * `--filter`: Deprecated alias for `--output-filter`
-* `--filter-option`: Pass an option for the export filter, in name=value format. Use true/false for boolean values. Can be repeated for multiple options.
+* `--filter-option`: Pass an option for the export filter, in name=value format, or for positional parameters, a comma separated list. Use true/false for boolean values. Can be repeated for multiple options.
 * `--filter-options`: Deprecated alias for `--filter-option`.
 * `--host`: The host used by the server, defaults to "127.0.0.1"
 * `--port`: The port used by the server, defaults to "2003"
@@ -142,6 +142,14 @@ Unoconvert
 Example for setting PNG width/height::
 
   unoconvert infile.odt outfile.png --filter-options PixelWidth=640 --filter-options PixelHeight=480
+
+Example for setting CSV output options::
+
+  unoconvert infile.xlsx outfile.csv --filter-options "59,34,76,1"
+
+Example for HTML export with embedded images::
+
+  unoconvert infile.odt outfile.html --filter-options EmbedImages
 
 
 Unocompare
