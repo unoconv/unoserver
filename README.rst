@@ -99,8 +99,9 @@ Unoserver
   unoserver [-h] [-v] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
             [--daemon] [--executable EXECUTABLE] [--user-installation USER_INSTALLATION]
             [--libreoffice-pid-file LIBREOFFICE_PID_FILE] [--conversion-timeout CONVERSION_TIMEOUT]
-            [--stop-after STOP_AFTER]
+            [--stop-after STOP_AFTER] [--verbose] [--quiet]
 
+* `-v, --version`: Display version and exit.
 * `--interface`: The interface used by the XMLRPC server, defaults to "127.0.0.1"
 * `--port`: The port used by the XMLRPC server, defaults to "2003"
 * `--uno-interface`: The interface used by the LibreOffice server, defaults to "127.0.0.1"
@@ -112,7 +113,9 @@ Unoserver
   If started in daemon mode, the file will not be deleted when unoserver exits.
 * `--conversion-timeout`: Terminate Libreoffice and exit if a conversion does not complete in the given time (in seconds).
 * `--stop-after`: Terminate Libreoffice and exit after the given number of requests.
-* `-v, --version`: Display version and exit.
+* `--verbose`: Add debug information as output
+* `--quiet`: Only output errors and warnings
+
 
 Unoconvert
 ~~~~~~~~~~
