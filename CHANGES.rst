@@ -1,5 +1,5 @@
-3.2b3 (unreleased)
-------------------
+3.2 (2025-03-31)
+----------------
 
 - Added a `--stop-after` parameter, that makes unoserver quit after a certain
   number of requests. This is useful if you want to minimize memory usage, as
