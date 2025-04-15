@@ -5,6 +5,7 @@ import sys
 import time
 
 from importlib import metadata
+from typing import Optional
 from xmlrpc.client import ServerProxy
 
 __version__ = metadata.version("unoserver")
@@ -76,6 +77,7 @@ class UnoClient:
         filter_options=[],
         update_index=True,
         infiltername=None,
+        conversion_timeout: Optional[int]=None,
     ):
         """Converts a file from one type to another
 
@@ -148,6 +150,7 @@ class UnoClient:
                 filter_options,
                 update_index,
                 infiltername,
+                conversion_timeout=conversion_timeout,
             )
             if result is not None:
                 # We got the file back over xmlrpc:
@@ -170,6 +173,7 @@ class UnoClient:
         newdata=None,
         outpath=None,
         filetype=None,
+        conversion_timeout: Optional[int] = None,
     ):
         """Compare two files and convert the result from one type to another.
 
@@ -235,6 +239,7 @@ class UnoClient:
                 newdata,
                 outpath if self.server in ("127.0.0.1", "localhost") else None,
                 filetype,
+                conversion_timeout=conversion_timeout,
             )
             if result is not None:
                 # We got the file back over xmlrpc:

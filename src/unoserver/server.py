@@ -17,6 +17,7 @@ from importlib import metadata
 from pathlib import Path
 
 from concurrent import futures
+from typing import Optional
 
 from unoserver import converter, comparer
 from com.sun.star.uno import Exception as UnoException
@@ -52,7 +53,7 @@ class UnoServer:
         uno_interface="127.0.0.1",
         uno_port="2002",
         user_installation=None,
-        conversion_timeout=None,
+        conversion_timeout: Optional[int]=None,
         stop_after=None,
     ):
         self.interface = interface
@@ -229,6 +230,7 @@ class UnoServer:
                 filter_options=[],
                 update_index=True,
                 infiltername=None,
+                conversion_timeout: Optional[int]=None,
             ):
                 if indata is not None:
                     indata = indata.data
@@ -246,7 +248,7 @@ class UnoServer:
                         infiltername,
                     )
                     try:
-                        result = future.result(timeout=self.conversion_timeout)
+                        result = future.result(timeout=conversion_timeout or self.conversion_timeout)
                     except futures.TimeoutError:
                         logger.error(
                             "Conversion timeout, terminating conversion and exiting."
@@ -266,6 +268,7 @@ class UnoServer:
                 newdata=None,
                 outpath=None,
                 filetype=None,
+                conversion_timeout: Optional[int]=None,
             ):
                 if olddata is not None:
                     olddata = olddata.data
@@ -283,7 +286,7 @@ class UnoServer:
                         filetype,
                     )
                 try:
-                    result = future.result(timeout=self.conversion_timeout)
+                    result = future.result(timeout=conversion_timeout or self.conversion_timeout)
                 except futures.TimeoutError:
                     logger.error(
                         "Comparison timeout, terminating conversion and exiting."
