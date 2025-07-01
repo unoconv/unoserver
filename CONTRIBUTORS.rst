@@ -13,3 +13,4 @@ Contributors
 * ReeceJones, https://github.com/ReeceJones
 * Grunthos, https://github.com/Grunthos
 * Witiko, https://github.com/Witiko
+* Prpl, https://github.com/prpladmin
