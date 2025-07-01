@@ -1,7 +1,7 @@
 3.3 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added support to use https between client and server.  [Prpl]
 
 
 3.2 (2025-03-31)
