@@ -28,7 +28,9 @@ DOC_TYPES = {
 class UnoClient:
     """An RPC client for Unoserver"""
 
-    def __init__(self, server="127.0.0.1", port="2003", host_location="auto", protocol="http"):
+    def __init__(
+        self, server="127.0.0.1", port="2003", host_location="auto", protocol="http"
+    ):
         if protocol not in ("http", "https"):
             raise ValueError("protocol must be 'http' or 'https'")
         self.server = server
@@ -123,7 +125,9 @@ class UnoClient:
             if os.path.isdir(outpath):
                 raise ValueError("The outpath can not be a directory")
 
-        with ServerProxy(f"{self.protocol}://{self.server}:{self.port}", allow_none=True) as proxy:
+        with ServerProxy(
+            f"{self.protocol}://{self.server}:{self.port}", allow_none=True
+        ) as proxy:
             logger.info("Connecting.")
             logger.debug(f"Host: {self.server} Port: {self.port}")
             info = self._connect(proxy)
@@ -226,7 +230,9 @@ class UnoClient:
         if newpath:
             newpath = os.path.abspath(newpath)
 
-        with ServerProxy(f"{self.protocol}://{self.server}:{self.port}", allow_none=True) as proxy:
+        with ServerProxy(
+            f"{self.protocol}://{self.server}:{self.port}", allow_none=True
+        ) as proxy:
             logger.info("Connecting.")
             logger.debug(f"Host: {self.server} Port: {self.port}")
             self._connect(proxy)
@@ -310,6 +316,12 @@ def converter_main():
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
     parser.add_argument(
+        "--protocol",
+        choices=["http", "https"],
+        default="http",
+        help="The protocol used by the server",
+    )
+    parser.add_argument(
         "--host-location",
         default="auto",
         choices=["auto", "remote", "local"],
@@ -342,7 +354,7 @@ def converter_main():
     if args.verbose and args.quiet:
         logger.debug("Make up your mind, yo!")
 
-    client = UnoClient(args.host, args.port, args.host_location)
+    client = UnoClient(args.host, args.port, args.host_location, args.protocol)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,
@@ -404,6 +416,12 @@ def comparer_main():
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
     parser.add_argument(
+        "--protocol",
+        choices=["http", "https"],
+        default="http",
+        help="The protocol used by the server",
+    )
+    parser.add_argument(
         "--host-location",
         default="auto",
         choices=["auto", "remote", "local"],
@@ -436,7 +454,7 @@ def comparer_main():
     if args.verbose and args.quiet:
         logger.debug("Make up your mind, yo!")
 
-    client = UnoClient(args.host, args.port, args.host_location)
+    client = UnoClient(args.host, args.port, args.host_location, args.protocol)
 
     if args.outfile == "-":
         # Set outfile to None, to get the data returned from the function,

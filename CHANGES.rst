@@ -1,7 +1,8 @@
 3.3 (unreleased)
 ----------------
 
-- Added support to use https between client and server.  [Prpl]
+- Added support to use https between client and server.
+  Defaults to http. [Prpl, Regebro]
 
 
 3.2 (2025-03-31)
