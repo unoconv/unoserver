@@ -1,4 +1,4 @@
-3.3 (unreleased)
+3.3 (2025-07-02)
 ----------------
 
 - Added support to use https between client and server.
