@@ -4,6 +4,9 @@
 - Added support to use https between client and server.
   Defaults to http. [Prpl, Regebro]
 
+- The server now uses a temporary file to write the outfile to, as some
+  filters raise an error when using `private:stream`. (Issue #117)
+
 
 3.2 (2025-03-31)
 ----------------
