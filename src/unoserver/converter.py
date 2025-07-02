@@ -7,14 +7,12 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
-import io
 import logging
 import os
-import unohelper
+import tempfile
 
 from pathlib import Path
 from com.sun.star.beans import PropertyValue
-from com.sun.star.io import XOutputStream
 
 logger = logging.getLogger("unoserver")
 
@@ -50,15 +48,31 @@ def get_doc_type(doc):
     )
 
 
-class OutputStream(unohelper.Base, XOutputStream):
-    def __init__(self):
-        self.buffer = io.BytesIO()
+class MaybeFileContextManager:
+    """If there is no file path, make a temporary file path"""
 
-    def closeOutput(self):
-        pass
+    def __init__(self, file_path, suffix):
+        if not file_path and not suffix:
+            raise ValueError(
+                "The MaybeFileContextManager needs a file path or a suffix"
+            )
+        if suffix[0] == ".":
+            self.suffix = suffix
+        else:
+            self.suffix = "." + suffix
+        self.file_path = file_path
+        self.tempfile = False
 
-    def writeBytes(self, seq):
-        self.buffer.write(seq.value)
+    def __enter__(self):
+        if not self.file_path:
+            self.tempfile = True
+            self.file_path = tempfile.mkstemp(suffix=self.suffix)[1]
+
+        return self.file_path
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.tempfile:
+            os.unlink(self.file_path)
 
 
 class UnoConverter:
@@ -87,6 +101,9 @@ class UnoConverter:
         )
         self._export_filters = None
         self._import_filters = None
+        # Some output filters can't stream the data. When that fails,
+        # store them here, and do not attempt to stream with those filters.
+        self._broken_filters = []
 
     def find_filter(self, import_type, export_type):
         for export_filter in self.get_available_export_filters():
@@ -255,102 +272,95 @@ class UnoConverter:
             # Figure out document type:
             import_type = get_doc_type(document)
 
-            if outpath:
-                export_path = uno.systemPathToFileUrl(os.path.abspath(outpath))
-            else:
-                export_path = "private:stream"
+            with MaybeFileContextManager(outpath, convert_to) as export_path:
+                # Make a URL
+                export_url = uno.systemPathToFileUrl(os.path.abspath(export_path))
 
-            # Figure out the output type:
-            if convert_to:
-                export_type = self.type_service.queryTypeByURL(
-                    f"file:///dummy.{convert_to}"
-                )
-            else:
-                export_type = self.type_service.queryTypeByURL(export_path)
+                # Figure out the output type:
+                export_type = self.type_service.queryTypeByURL(export_url)
 
-            if not export_type:
-                if convert_to:
-                    extension = convert_to
-                else:
-                    extension = os.path.splitext(outpath)[-1]
-                raise RuntimeError(
-                    f"Unknown export file type, unknown extension '{extension}'"
-                )
-
-            if filtername is not None:
-                available_filter_names = self.get_filter_names(
-                    self.get_available_export_filters()
-                )
-                if filtername not in available_filter_names:
+                if not export_type:
+                    if convert_to:
+                        extension = convert_to
+                    else:
+                        extension = os.path.splitext(outpath)[-1]
                     raise RuntimeError(
-                        f"There is no '{filtername}' export-filter. Available filters: {sorted(available_filter_names)}"
-                    )
-            else:
-                filtername = self.find_filter(import_type, export_type)
-                if filtername is None:
-                    raise RuntimeError(
-                        f"Could not find an export filter from {import_type} to {export_type}"
+                        f"Unknown export file type, unknown extension '{extension}'"
                     )
 
-            logger.info(f"Exporting to {outpath}")
-            logger.info(
-                f"Using {filtername} export filter from {infiltername} to {export_type}"
-            )
-
-            export_filter_data = []
-            export_filter_options = []
-
-            for option in filter_options:
-                if "=" in option:
-                    option_name, option_value = option.split("=", maxsplit=1)
+                if filtername is not None:
+                    available_filter_names = self.get_filter_names(
+                        self.get_available_export_filters()
+                    )
+                    if filtername not in available_filter_names:
+                        raise RuntimeError(
+                            f"There is no '{filtername}' export-filter. Available filters: "
+                            f"{sorted(available_filter_names)}"
+                        )
                 else:
-                    option_name = None
-                    option_value = option
+                    filtername = self.find_filter(import_type, export_type)
+                    if filtername is None:
+                        raise RuntimeError(
+                            f"Could not find an export filter from {import_type} to {export_type}"
+                        )
 
-                if option_value == "false":
-                    option_value = False
-                elif option_value == "true":
-                    option_value = True
-                elif option_value.isdecimal():
-                    option_value = int(option_value)
-
-                if option_name is not None:
-                    export_filter_data.append(
-                        PropertyValue(Name=option_name, Value=option_value)
-                    )
-                else:
-                    export_filter_options.append(
-                        PropertyValue(Name="FilterOptions", Value=option_value)
-                    )
-
-            output_props = (
-                PropertyValue(Name="FilterName", Value=filtername),
-                PropertyValue(Name="Overwrite", Value=True),
-            )
-            if outpath is None:
-                output_stream = OutputStream()
-                output_props += (
-                    PropertyValue(Name="OutputStream", Value=output_stream),
+                logger.info(f"Exporting to {export_path}")
+                logger.info(
+                    f"Using {filtername} export filter from {infiltername} to {export_type}"
                 )
-            if export_filter_data:
-                output_props += (
-                    PropertyValue(
-                        Name="FilterData",
-                        Value=uno.Any(
-                            "[]com.sun.star.beans.PropertyValue",
-                            tuple(export_filter_data),
+
+                export_filter_data = []
+                export_filter_options = []
+
+                for option in filter_options:
+                    if "=" in option:
+                        option_name, option_value = option.split("=", maxsplit=1)
+                    else:
+                        option_name = None
+                        option_value = option
+
+                    if option_value == "false":
+                        option_value = False
+                    elif option_value == "true":
+                        option_value = True
+                    elif option_value.isdecimal():
+                        option_value = int(option_value)
+
+                    if option_name is not None:
+                        export_filter_data.append(
+                            PropertyValue(Name=option_name, Value=option_value)
+                        )
+                    else:
+                        export_filter_options.append(
+                            PropertyValue(Name="FilterOptions", Value=option_value)
+                        )
+
+                output_props = (
+                    PropertyValue(Name="FilterName", Value=filtername),
+                    PropertyValue(Name="Overwrite", Value=True),
+                )
+
+                if export_filter_data:
+                    output_props += (
+                        PropertyValue(
+                            Name="FilterData",
+                            Value=uno.Any(
+                                "[]com.sun.star.beans.PropertyValue",
+                                tuple(export_filter_data),
+                            ),
                         ),
-                    ),
-                )
-            if export_filter_options:
-                output_props += tuple(export_filter_options)
+                    )
+                if export_filter_options:
+                    output_props += tuple(export_filter_options)
 
-            document.storeToURL(export_path, output_props)
+                document.storeToURL(export_url, output_props)
+                if not outpath:
+                    with open(export_path, "rb") as outfile:
+                        outdata = outfile.read()
+                else:
+                    outdata = None
 
         finally:
             document.close(True)
 
-        if outpath is None:
-            return output_stream.buffer.getvalue()
-        else:
-            return None
+        return outdata
