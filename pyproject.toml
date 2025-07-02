@@ -32,7 +32,7 @@ devenv = [
     "pytest-cov",
     "black",
     "flake8",
-    "pyroma>=5.0a1",
+    "pyroma",
     "check-manifest",
     "zest.releaser",
 ]
