@@ -7,6 +7,7 @@ except ImportError:
         "it with the same Python executable as your Libreoffice installation uses."
     )
 
+import contextlib
 import logging
 import os
 import tempfile
@@ -48,31 +49,26 @@ def get_doc_type(doc):
     )
 
 
-class MaybeFileContextManager:
-    """If there is no file path, make a temporary file path"""
+@contextlib.contextmanager
+def TempFileIfNeeded(path, suffix, data=None):
+    """Takes an path and data
 
-    def __init__(self, file_path, suffix):
-        if not file_path and not suffix:
-            raise ValueError(
-                "The MaybeFileContextManager needs a file path or a suffix"
-            )
-        if suffix[0] == ".":
-            self.suffix = suffix
-        else:
-            self.suffix = "." + suffix
-        self.file_path = file_path
-        self.tempfile = False
+    If path is None or empty, then it creates a temporary file,
+    writes the given data to it, and yields the path of the temporary file.
 
-    def __enter__(self):
-        if not self.file_path:
-            self.tempfile = True
-            self.file_path = tempfile.mkstemp(suffix=self.suffix)[1]
+    If path is not empty, it just yields the given path.
 
-        return self.file_path
+    This enables file handling of a file OR binary data.
+    """
+    if path:
+        yield path
+    else:
+        with tempfile.NamedTemporaryFile(suffix=suffix) as file:
+            if data:
+                file.file.write(data)
+            file.file.close()
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if self.tempfile:
-            os.unlink(self.file_path)
+            yield file.name
 
 
 class UnoConverter:
@@ -101,9 +97,6 @@ class UnoConverter:
         )
         self._export_filters = None
         self._import_filters = None
-        # Some output filters can't stream the data. When that fails,
-        # store them here, and do not attempt to stream with those filters.
-        self._broken_filters = []
 
     def find_filter(self, import_type, export_type):
         for export_filter in self.get_available_export_filters():
@@ -214,153 +207,143 @@ class UnoConverter:
                     f"There is no '{infiltername}' import filter. Available filters: {sorted(infilters.keys())}"
                 )
 
-        if inpath:
+        with TempFileIfNeeded(inpath, suffix="", data=indata) as input_path:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
             # exceptions are completely useless!
 
-            if not Path(inpath).exists():
-                raise RuntimeError(f"Path {inpath} does not exist.")
+            if not Path(input_path).exists():
+                raise RuntimeError(f"Path {input_path} does not exist.")
 
             # Load the document
-            logger.info(f"Opening {inpath} for input")
-            import_path = uno.systemPathToFileUrl(os.path.abspath(inpath))
+            logger.info(f"Opening {input_path} for input")
+            import_path = uno.systemPathToFileUrl(os.path.abspath(input_path))
 
-        elif indata:
-            # The document content is passed in as a byte string
-            logger.info("Opening private:stream for input")
-            old_stream = self.service.createInstanceWithContext(
-                "com.sun.star.io.SequenceInputStream", self.context
+            document = self.desktop.loadComponentFromURL(
+                import_path, "_default", 0, input_props
             )
-            old_stream.initialize((uno.ByteSequence(indata),))
-            input_props += (PropertyValue(Name="InputStream", Value=old_stream),)
-            import_path = "private:stream"
 
-        document = self.desktop.loadComponentFromURL(
-            import_path, "_default", 0, input_props
-        )
+            if document is None:
+                # Could not load document, fail
+                if not inpath:
+                    inpath = "<remote file>"
+                if not infiltername:
+                    infiltername = "default"
 
-        if document is None:
-            # Could not load document, fail
-            if not inpath:
-                inpath = "<remote file>"
-            if not infiltername:
-                infiltername = "default"
+                error = (
+                    f"Could not load document {inpath} using the {infiltername} filter."
+                )
+                logger.error(error)
+                raise RuntimeError(error)
 
-            error = f"Could not load document {inpath} using the {infiltername} filter."
-            logger.error(error)
-            raise RuntimeError(error)
-
-        if update_index:
-            # Update document indexes
-            for ii in range(2):
-                # At first, update Table-of-Contents.
-                # ToC grows, so page numbers grow too.
-                # On second turn, update page numbers in ToC.
-                try:
-                    document.refresh()
-                    indexes = document.getDocumentIndexes()
-                except AttributeError:
-                    # The document doesn't implement the XRefreshable and/or
-                    # XDocumentIndexesSupplier interfaces
-                    break
-                else:
-                    for i in range(0, indexes.getCount()):
-                        indexes.getByIndex(i).update()
-
-        # Now do the conversion
-        try:
-            # Figure out document type:
-            import_type = get_doc_type(document)
-
-            with MaybeFileContextManager(outpath, convert_to) as export_path:
-                # Make a URL
-                export_url = uno.systemPathToFileUrl(os.path.abspath(export_path))
-
-                # Figure out the output type:
-                export_type = self.type_service.queryTypeByURL(export_url)
-
-                if not export_type:
-                    if convert_to:
-                        extension = convert_to
+            if update_index:
+                # Update document indexes
+                for ii in range(2):
+                    # At first, update Table-of-Contents.
+                    # ToC grows, so page numbers grow too.
+                    # On second turn, update page numbers in ToC.
+                    try:
+                        document.refresh()
+                        indexes = document.getDocumentIndexes()
+                    except AttributeError:
+                        # The document doesn't implement the XRefreshable and/or
+                        # XDocumentIndexesSupplier interfaces
+                        break
                     else:
-                        extension = os.path.splitext(outpath)[-1]
-                    raise RuntimeError(
-                        f"Unknown export file type, unknown extension '{extension}'"
+                        for i in range(0, indexes.getCount()):
+                            indexes.getByIndex(i).update()
+
+            # Now do the conversion
+            try:
+                # Figure out document type:
+                import_type = get_doc_type(document)
+
+                with TempFileIfNeeded(outpath, "." + convert_to) as output_path:
+
+                    # Make a URL
+                    export_url = uno.systemPathToFileUrl(os.path.abspath(output_path))
+
+                    # Figure out the output type:
+                    export_type = self.type_service.queryTypeByURL(export_url)
+
+                    if not export_type:
+                        if convert_to:
+                            extension = convert_to
+                        else:
+                            extension = os.path.splitext(output_path)[-1]
+                        raise RuntimeError(
+                            f"Unknown export file type, unknown extension '{extension}'"
+                        )
+
+                    if filtername is not None:
+                        available_filter_names = self.get_filter_names(
+                            self.get_available_export_filters()
+                        )
+                        if filtername not in available_filter_names:
+                            raise RuntimeError(
+                                f"There is no '{filtername}' export-filter. Available filters: "
+                                f"{sorted(available_filter_names)}"
+                            )
+                    else:
+                        filtername = self.find_filter(import_type, export_type)
+                        if filtername is None:
+                            raise RuntimeError(
+                                f"Could not find an export filter from {import_type} to {export_type}"
+                            )
+
+                    logger.info(f"Exporting to {output_path}")
+                    logger.info(
+                        f"Using {filtername} export filter from {infiltername} to {export_type}"
                     )
 
-                if filtername is not None:
-                    available_filter_names = self.get_filter_names(
-                        self.get_available_export_filters()
+                    export_filter_data = []
+                    export_filter_options = []
+
+                    for option in filter_options:
+                        if "=" in option:
+                            option_name, option_value = option.split("=", maxsplit=1)
+                        else:
+                            option_name = None
+                            option_value = option
+
+                        if option_value == "false":
+                            option_value = False
+                        elif option_value == "true":
+                            option_value = True
+                        elif option_value.isdecimal():
+                            option_value = int(option_value)
+
+                        if option_name is not None:
+                            export_filter_data.append(
+                                PropertyValue(Name=option_name, Value=option_value)
+                            )
+                        else:
+                            export_filter_options.append(
+                                PropertyValue(Name="FilterOptions", Value=option_value)
+                            )
+
+                    output_props = (
+                        PropertyValue(Name="FilterName", Value=filtername),
+                        PropertyValue(Name="Overwrite", Value=True),
                     )
-                    if filtername not in available_filter_names:
-                        raise RuntimeError(
-                            f"There is no '{filtername}' export-filter. Available filters: "
-                            f"{sorted(available_filter_names)}"
-                        )
-                else:
-                    filtername = self.find_filter(import_type, export_type)
-                    if filtername is None:
-                        raise RuntimeError(
-                            f"Could not find an export filter from {import_type} to {export_type}"
-                        )
 
-                logger.info(f"Exporting to {export_path}")
-                logger.info(
-                    f"Using {filtername} export filter from {infiltername} to {export_type}"
-                )
-
-                export_filter_data = []
-                export_filter_options = []
-
-                for option in filter_options:
-                    if "=" in option:
-                        option_name, option_value = option.split("=", maxsplit=1)
-                    else:
-                        option_name = None
-                        option_value = option
-
-                    if option_value == "false":
-                        option_value = False
-                    elif option_value == "true":
-                        option_value = True
-                    elif option_value.isdecimal():
-                        option_value = int(option_value)
-
-                    if option_name is not None:
-                        export_filter_data.append(
-                            PropertyValue(Name=option_name, Value=option_value)
-                        )
-                    else:
-                        export_filter_options.append(
-                            PropertyValue(Name="FilterOptions", Value=option_value)
-                        )
-
-                output_props = (
-                    PropertyValue(Name="FilterName", Value=filtername),
-                    PropertyValue(Name="Overwrite", Value=True),
-                )
-
-                if export_filter_data:
-                    output_props += (
-                        PropertyValue(
-                            Name="FilterData",
-                            Value=uno.Any(
-                                "[]com.sun.star.beans.PropertyValue",
-                                tuple(export_filter_data),
+                    if export_filter_data:
+                        output_props += (
+                            PropertyValue(
+                                Name="FilterData",
+                                Value=uno.Any(
+                                    "[]com.sun.star.beans.PropertyValue",
+                                    tuple(export_filter_data),
+                                ),
                             ),
-                        ),
-                    )
-                if export_filter_options:
-                    output_props += tuple(export_filter_options)
+                        )
+                    if export_filter_options:
+                        output_props += tuple(export_filter_options)
 
-                document.storeToURL(export_url, output_props)
-                if not outpath:
-                    with open(export_path, "rb") as outfile:
-                        outdata = outfile.read()
-                else:
-                    outdata = None
+                    document.storeToURL(export_url, output_props)
 
-        finally:
-            document.close(True)
+                    if outpath is None:
+                        with open(output_path, "rb") as output:
+                            return output.read()
 
-        return outdata
+            finally:
+                document.close(True)

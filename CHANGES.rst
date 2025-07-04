@@ -1,7 +1,8 @@
 3.4 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Now uses a temporary file for the input as well, as it's not obvious to me
+  how to use `private:stream` without memory leaks.
 
 
 3.3 (2025-07-02)
