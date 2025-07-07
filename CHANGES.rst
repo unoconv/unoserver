@@ -1,4 +1,4 @@
-3.3.2 (unreleased)
+3.3.2 (2025-07-07)
 ------------------
 
 - Another memory leak
