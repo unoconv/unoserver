@@ -29,15 +29,16 @@ def prop2dict(properties):
 
 
 def get_doc_type(doc):
-    for t in DOC_TYPES:
-        if doc.supportsService(t):
-            return t
+    names = doc.getSupportedServiceNames()
+    types = DOC_TYPES.intersection(names)
 
-    # LibreOffice opened it, but it's not one of the supported document types.
+    if types:
+        return types.pop()
+    # LibreOffice opened it, but it's not one of the known document types.
     # This really should only happen if a future version of LibreOffice starts
     # adding document types, which seems unlikely.
     raise RuntimeError(
-        "The input document is an unsupported document type for comparing.\n"
+        "The input document is of an unknown document type. This is probably a bug.\n"
         "Please create an issue at https://github.com/unoconv/unoserver."
     )
 
