@@ -36,10 +36,11 @@ def prop2dict(properties):
 
 
 def get_doc_type(doc):
-    for t in DOC_TYPES:
-        if doc.supportsService(t):
-            return t
+    names = doc.getSupportedServiceNames()
+    types = DOC_TYPES.intersection(names)
 
+    if types:
+        return types.pop()
     # LibreOffice opened it, but it's not one of the known document types.
     # This really should only happen if a future version of LibreOffice starts
     # adding document types, which seems unlikely.
@@ -210,7 +211,6 @@ class UnoConverter:
         with TempFileIfNeeded(inpath, suffix="", data=indata) as input_path:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
             # exceptions are completely useless!
-
             if not Path(input_path).exists():
                 raise RuntimeError(f"Path {input_path} does not exist.")
 
