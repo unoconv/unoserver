@@ -51,7 +51,7 @@ def get_doc_type(doc):
 
 
 @contextlib.contextmanager
-def TempFileIfNeeded(path, suffix, data=None):
+def TempFileIfNeeded(path, suffix=None, data=None):
     """Takes an path and data
 
     If path is None or empty, then it creates a temporary file,
@@ -64,6 +64,10 @@ def TempFileIfNeeded(path, suffix, data=None):
     if path:
         yield path
     else:
+        if suffix:
+            suffix = "." + suffix
+        else:
+            suffix = ""
         with tempfile.NamedTemporaryFile(suffix=suffix) as file:
             if data:
                 file.file.write(data)
@@ -208,7 +212,7 @@ class UnoConverter:
                     f"There is no '{infiltername}' import filter. Available filters: {sorted(infilters.keys())}"
                 )
 
-        with TempFileIfNeeded(inpath, suffix="", data=indata) as input_path:
+        with TempFileIfNeeded(inpath, data=indata) as input_path:
             # TODO: Verify that inpath exists and is openable, and that outdir exists, because uno's
             # exceptions are completely useless!
             if not Path(input_path).exists():
@@ -257,7 +261,7 @@ class UnoConverter:
                 # Figure out document type:
                 import_type = get_doc_type(document)
 
-                with TempFileIfNeeded(outpath, "." + convert_to) as output_path:
+                with TempFileIfNeeded(outpath, convert_to) as output_path:
 
                     # Make a URL
                     export_url = uno.systemPathToFileUrl(os.path.abspath(output_path))
