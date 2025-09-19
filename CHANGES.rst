@@ -1,7 +1,7 @@
 3.3.3 (unreleased)
 ------------------
 
-- Nothing changed yet.
+- Closed #188
 
 
 3.3.2 (2025-07-07)
