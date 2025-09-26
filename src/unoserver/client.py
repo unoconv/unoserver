@@ -261,8 +261,6 @@ class UnoClient:
 
 
 def converter_main():
-    logging.basicConfig()
-
     parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
         "infile", help="The path to the file to be converted (use - for stdin)"
@@ -331,28 +329,43 @@ def converter_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--verbose",
         action="store_true",
         dest="verbose",
-        help="Increase informational output to stderr.",
+        help="Increase informational output to logs.",
     )
-    parser.add_argument(
+    group.add_argument(
         "--quiet",
         action="store_true",
         dest="quiet",
-        help="Decrease informational output to stderr.",
+        help="Decrease informational output to logs.",
+    )
+    parser.add_argument(
+        "-f",
+        "--logfile",
+        dest="logfile",
+        help="Write logs to a file (defaults to stderr)",
     )
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(logging.DEBUG)
+        log_args = {"level": logging.DEBUG}
     elif args.quiet:
-        logger.setLevel(logging.CRITICAL)
+        log_args = {"level": logging.CRITICAL}
     else:
-        logger.setLevel(logging.INFO)
-    if args.verbose and args.quiet:
-        logger.debug("Make up your mind, yo!")
+        log_args = {"level": logging.INFO}
+
+    if args.logfile:
+        log_args["filename"] = args.logfile
+
+        def new_excepthook(*exc):
+            logger.exception("Critical error", exc_info=exc)
+
+        sys.excepthook = new_excepthook
+
+    logging.basicConfig(**log_args)
 
     client = UnoClient(args.host, args.port, args.host_location, args.protocol)
 
@@ -384,9 +397,6 @@ def converter_main():
 
 
 def comparer_main():
-    logging.basicConfig()
-    logger.setLevel(logging.INFO)
-
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
         "oldfile",
@@ -431,28 +441,43 @@ def comparer_main():
         "Default is auto, and it will send the file as a path if the host is 127.0.0.1 or "
         "localhost, and binary data for other hosts.",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--verbose",
         action="store_true",
         dest="verbose",
-        help="Increase informational output to stderr.",
+        help="Increase informational output to logs.",
     )
-    parser.add_argument(
+    group.add_argument(
         "--quiet",
         action="store_true",
         dest="quiet",
-        help="Decrease informational output to stderr.",
+        help="Decrease informational output to logs.",
+    )
+    parser.add_argument(
+        "-f",
+        "--logfile",
+        dest="logfile",
+        help="Write logs to a file (defaults to stderr)",
     )
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(logging.DEBUG)
+        log_args = {"level": logging.DEBUG}
     elif args.quiet:
-        logger.setLevel(logging.CRITICAL)
+        log_args = {"level": logging.CRITICAL}
     else:
-        logger.setLevel(logging.INFO)
-    if args.verbose and args.quiet:
-        logger.debug("Make up your mind, yo!")
+        log_args = {"level": logging.INFO}
+
+    if args.logfile:
+        log_args["filename"] = args.logfile
+
+        def new_excepthook(*exc):
+            logger.exception("Critical error", exc_info=exc)
+
+        sys.excepthook = new_excepthook
+
+    logging.basicConfig(**log_args)
 
     client = UnoClient(args.host, args.port, args.host_location, args.protocol)
 
