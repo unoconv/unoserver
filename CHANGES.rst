@@ -3,6 +3,9 @@
 
 - Closed #188
 
+- Added --logfile, -f parameters to all scripts, to write logs to a
+  file instead of to stderr.
+
 
 3.3.2 (2025-07-07)
 ------------------

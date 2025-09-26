@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import logging
 import os
+import platform
 import shutil
 import signal
 import socket
@@ -11,7 +12,6 @@ import sys
 import tempfile
 import threading
 import time
-import platform
 import xmlrpc.server
 from importlib import metadata
 from pathlib import Path
@@ -299,7 +299,6 @@ class UnoServer:
             server.serve_forever()
 
     def stop(self):
-
         if self.xmlrcp_server is not None:
             self.xmlrcp_server.shutdown()
             # Make a dummy connection to unblock accept() - otherwise it will
@@ -326,9 +325,6 @@ class UnoServer:
 
 
 def main():
-    logging.basicConfig()
-    logger.setLevel(logging.INFO)
-
     parser = argparse.ArgumentParser("unoserver")
     parser.add_argument(
         "-v",
@@ -382,34 +378,61 @@ def main():
         type=int,
         help="Terminate Libreoffice and exit after the given number of requests.",
     )
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
         "--verbose",
         action="store_true",
         dest="verbose",
-        help="Increase informational output to stderr.",
+        help="Increase informational output to logs.",
     )
-    parser.add_argument(
+    group.add_argument(
         "--quiet",
         action="store_true",
         dest="quiet",
-        help="Decrease informational output to stderr.",
+        help="Decrease informational output to logs.",
+    )
+    parser.add_argument(
+        "-f",
+        "--logfile",
+        dest="logfile",
+        help="Write logs to a file (defaults to stderr)",
     )
     args = parser.parse_args()
 
     if args.verbose:
-        logger.setLevel(logging.DEBUG)
+        log_args = {"level": logging.DEBUG}
     elif args.quiet:
-        logger.setLevel(logging.CRITICAL)
+        log_args = {"level": logging.CRITICAL}
     else:
-        logger.setLevel(logging.INFO)
-    if args.verbose and args.quiet:
-        logger.debug("Make up your mind, yo!")
+        log_args = {"level": logging.INFO}
 
-    if args.daemon:
+    logging.basicConfig(**log_args)
+
+    if args.daemon or args.logfile:
         cmd = sys.argv
-        cmd.remove("--daemon")
-        proc = subprocess.Popen(cmd)
-        return proc.pid
+        if args.daemon:
+            cmd.remove("--daemon")
+
+        if args.logfile:
+            cmd.remove("--logfile")
+            cmd.remove(args.logfile)
+
+            with open(args.logfile, "ab") as logfile:
+                # This is the only way I can find to get logging to a file that
+                # will also consistently get exeptions in a thread logged to
+                # that file. I could possibly just redirect sys.stderr, but
+                # since I need this to daemonize unoserver, I might just as
+                # well use it. Just overriding the exception hook will not work
+                # file the thread, and I tried overriding the exception hook
+                # for the thread as well, but couldn't make it work.
+                proc = subprocess.Popen(cmd, stderr=logfile)
+        else:
+            proc = subprocess.Popen(cmd)
+
+        if args.daemon:
+            return proc.pid
+        else:
+            return proc.wait()
 
     with tempfile.TemporaryDirectory() as tmpuserdir:
         user_installation = Path(tmpuserdir).as_uri()
@@ -462,6 +485,7 @@ def main():
             logger.error(f"Looks like LibreOffice died. PID: {pid}")
 
         # The RPC thread needs to be stopped before the process can exit
+        logger.info("Stopping Unoserver")
         server.stop()
         if args.libreoffice_pid_file:
             # Remove the PID file
