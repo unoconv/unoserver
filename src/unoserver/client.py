@@ -82,6 +82,7 @@ class UnoClient:
         filter_options=[],
         update_index=True,
         infiltername=None,
+        password=None,
     ):
         """Converts a file from one type to another
 
@@ -156,6 +157,7 @@ class UnoClient:
                 filter_options,
                 update_index,
                 infiltername,
+                password,
             )
             if result is not None:
                 # We got the file back over xmlrpc:
@@ -348,6 +350,10 @@ def converter_main():
         dest="logfile",
         help="Write logs to a file (defaults to stderr)",
     )
+    parser.add_argument(
+    "--password",
+    help="The password to open the documents, if they are password protected.",
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -390,6 +396,7 @@ def converter_main():
         filter_options=args.filter_options,
         update_index=args.update_index,
         infiltername=args.input_filter,
+        password=args.password,
     )
 
     if args.outfile is None:

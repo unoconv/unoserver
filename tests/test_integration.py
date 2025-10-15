@@ -33,6 +33,28 @@ def test_pdf_conversion(server_fixture, filename):
             assert start.startswith(b"%PDF-1.")
 
 
+@pytest.mark.parametrize("filename", ["simple.encrypted.odt"])
+def test_password_protected_document(server_fixture, filename):
+    infile = os.path.join(TEST_DOCS, filename)
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+        # Let Libreoffice write to the file and close it.
+        sys.argv = [
+            "unoconverter",
+            "--password",
+            "password",
+            infile,
+            outfile.name,
+        ]
+        client.converter_main()
+
+        # We now open it to check it, we can't use the outfile object,
+        # it won't reflect the external changes.
+        with open(outfile.name, "rb") as testfile:
+            start = testfile.readline()
+            assert start.startswith(b"%PDF-1.")
+
+
 class FakeStdio(io.BytesIO):
     """A BytesIO with a buffer attribute, usable to send binary stdin data"""
 
