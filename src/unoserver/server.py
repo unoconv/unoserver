@@ -229,6 +229,7 @@ class UnoServer:
                 filter_options=[],
                 update_index=True,
                 infiltername=None,
+                password=None,
             ):
                 if indata is not None:
                     indata = indata.data
@@ -244,6 +245,7 @@ class UnoServer:
                         filter_options,
                         update_index,
                         infiltername,
+                        password,
                     )
                     try:
                         result = future.result(timeout=self.conversion_timeout)
