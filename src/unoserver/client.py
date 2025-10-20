@@ -96,8 +96,12 @@ class UnoClient:
         convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
 
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
+        
+        filter_options: A list of output filter options as strings, in a "OptionName=Value" format.
 
         update_index: Updates the index before conversion
+        
+        infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
         
         password: The password for the input file, if it is password protected.
         """
