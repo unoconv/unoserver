@@ -199,6 +199,8 @@ class UnoConverter:
 
         infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
 
+        password: The password for the input file, if it is password protected.
+
         You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)

@@ -98,6 +98,8 @@ class UnoClient:
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
 
         update_index: Updates the index before conversion
+        
+        password: The password for the input file, if it is password protected.
         """
         if inpath is None and indata is None:
             raise RuntimeError("Nothing to convert.")
