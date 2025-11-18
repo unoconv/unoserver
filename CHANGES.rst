@@ -2,8 +2,9 @@
 ----------------
 
 - Added docstrings to the XML-RPC methods, which should enable the
-  introspection functions to be useful. Closed #193
+  introspection functions to be useful.
 
+- Closed #181: --convert-to was ignored in some cases.
 
 3.4 (2025-09-26)
 ----------------
