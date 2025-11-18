@@ -96,13 +96,13 @@ class UnoClient:
         convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
 
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
-        
+
         filter_options: A list of output filter options as strings, in a "OptionName=Value" format.
 
         update_index: Updates the index before conversion
-        
+
         infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
-        
+
         password: The password for the input file, if it is password protected.
         """
         if inpath is None and indata is None:
@@ -271,10 +271,10 @@ class UnoClient:
 def converter_main():
     parser = argparse.ArgumentParser("unoconvert")
     parser.add_argument(
-        "infile", help="The path to the file to be converted (use - for stdin)"
+        "infile", help="The path to the file to be converted (use - for stdin)."
     )
     parser.add_argument(
-        "outfile", help="The path to the converted file (use - for stdout)"
+        "outfile", help="The path to the converted file (use - for stdout)."
     )
     parser.add_argument(
         "-v",
@@ -285,11 +285,11 @@ def converter_main():
     )
     parser.add_argument(
         "--convert-to",
-        help="The file type/extension of the output file (ex pdf). Required when using stdout",
+        help="The file type/extension of the output file (ex pdf). Required when using stdout.",
     )
     parser.add_argument(
         "--input-filter",
-        help="The LibreOffice input filter to use (ex 'writer8'), if autodetect fails",
+        help="The LibreOffice input filter to use (ex 'writer8'), if autodetect fails.",
     )
     parser.add_argument(
         "--output-filter",
@@ -318,14 +318,14 @@ def converter_main():
     )
     parser.set_defaults(update_index=True)
     parser.add_argument(
-        "--host", default="127.0.0.1", help="The host the server runs on"
+        "--host", default="127.0.0.1", help="The host the server runs on."
     )
     parser.add_argument("--port", default="2003", help="The port used by the server")
     parser.add_argument(
         "--protocol",
         choices=["http", "https"],
         default="http",
-        help="The protocol used by the server",
+        help="What protocol to use to connect to the server (defaults to http).",
     )
     parser.add_argument(
         "--host-location",
@@ -354,11 +354,11 @@ def converter_main():
         "-f",
         "--logfile",
         dest="logfile",
-        help="Write logs to a file (defaults to stderr)",
+        help="Write logs to a file (defaults to stderr).",
     )
     parser.add_argument(
-    "--password",
-    help="The password to open the documents, if they are password protected.",
+        "--password",
+        help="The password to open the documents, if they are password protected.",
     )
     args = parser.parse_args()
 
@@ -413,15 +413,15 @@ def comparer_main():
     parser = argparse.ArgumentParser("unocompare")
     parser.add_argument(
         "oldfile",
-        help="The path to the original file to be compared with the modified one (use - for stdin)",
+        help="The path to the older file to be compared (use - for stdin).",
     )
     parser.add_argument(
         "newfile",
-        help="The path to the modified file to be compared with the original one (use - for stdin)",
+        help="The path to the newer file to be compared (use - for stdin).",
     )
     parser.add_argument(
         "outfile",
-        help="The path to the result of the comparison and converted file (use - for stdout)",
+        help="The path to the result of the comparison and converted file (use - for stdout).",
     )
     parser.add_argument(
         "-v",
@@ -432,17 +432,17 @@ def comparer_main():
     )
     parser.add_argument(
         "--file-type",
-        help="The file type/extension of the result file (ex pdf). Required when using stdout",
+        help="The file type/extension of the result file (ex pdf). Required when using stdout.",
     )
     parser.add_argument(
-        "--host", default="127.0.0.1", help="The host the server run on"
+        "--host", default="127.0.0.1", help="The host the server run on."
     )
-    parser.add_argument("--port", default="2003", help="The port used by the server")
+    parser.add_argument("--port", default="2003", help="The port used by the server.")
     parser.add_argument(
         "--protocol",
         choices=["http", "https"],
         default="http",
-        help="The protocol used by the server",
+        help="What protocol to use to connect to the server (defaults to http).",
     )
     parser.add_argument(
         "--host-location",
@@ -471,7 +471,7 @@ def comparer_main():
         "-f",
         "--logfile",
         dest="logfile",
-        help="Write logs to a file (defaults to stderr)",
+        help="Write logs to a file (defaults to stderr).",
     )
     args = parser.parse_args()
 

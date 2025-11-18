@@ -98,8 +98,8 @@ Unoserver
 
   unoserver [-h] [-v] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
             [--daemon] [--executable EXECUTABLE] [--user-installation USER_INSTALLATION]
-            [--libreoffice-pid-file LIBREOFFICE_PID_FILE] [--conversion-timeout CONVERSION_TIMEOUT]
-            [--stop-after STOP_AFTER] [--verbose] [--quiet]
+            [-p/--libreoffice-pid-file LIBREOFFICE_PID_FILE] [--conversion-timeout CONVERSION_TIMEOUT]
+            [--stop-after STOP_AFTER] [--verbose] [--quiet] [-f/--logfile logfile]
 
 * `-v, --version`: Display version and exit.
 * `--interface`: The interface used by the XMLRPC server, defaults to "127.0.0.1"
@@ -109,12 +109,13 @@ Unoserver
 * `--daemon`: Deamonize the server
 * `--executable`: The path to the LibreOffice executable
 * `--user-installation`: The path to the LibreOffice user profile, defaults to a dynamically created temporary directory
-* `--libreoffice-pid-file`: If set, unoserver will write the Libreoffice PID to this file.
+* `--p`, `--libreoffice-pid-file`: If set, unoserver will write the Libreoffice PID to this file.
   If started in daemon mode, the file will not be deleted when unoserver exits.
 * `--conversion-timeout`: Terminate Libreoffice and exit if a conversion does not complete in the given time (in seconds).
 * `--stop-after`: Terminate Libreoffice and exit after the given number of requests.
 * `--verbose`: Add debug information as output
 * `--quiet`: Only output errors and warnings
+* `-f`, `--logfile`: Write logs to a file (defaults to stderr)
 
 
 Unoconvert
@@ -123,24 +124,27 @@ Unoconvert
 .. code::
 
   unoconvert [-h] [-v] [--convert-to CONVERT_TO] [--input-filter INPUT_FILTER] [--output-filter OUTPUT_FILTER]
-             [--filter-options FILTER_OPTIONS] [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
-             [--host-location {auto,remote,local}] infile outfile
+             [--filter-option FILTER_OPTIONS] [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
+             [--host-location {auto,remote,local}] [--protocol {http, https}] [-f/--logfile logfile] infile outfile
 
-* `infile`: The path to the file to be converted (use - for stdin)
-* `outfile`: The path to the converted file (use - for stdout)
-* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout
-* `--input-filter`: The LibreOffice input filter to use (ex 'writer8'), if autodetect fails
+* `infile`: The path to the file to be converted (use - for stdin).
+* `outfile`: The path to the converted file (use - for stdout).
+* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout.
+* `--input-filter`: The LibreOffice input filter to use (ex 'writer8'), if autodetect fails.
 * `--output-filter`: The export filter to use when converting. It is selected automatically if not specified.
-* `--filter`: Deprecated alias for `--output-filter`
+* `--filter`: Deprecated alias for `--output-filter`.
 * `--filter-option`: Pass an option for the export filter, in name=value format, or for positional parameters, a comma separated list. Use true/false for boolean values. Can be repeated for multiple options.
 * `--filter-options`: Deprecated alias for `--filter-option`.
-* `--host`: The host used by the server, defaults to "127.0.0.1"
-* `--port`: The port used by the server, defaults to "2003"
+* `--password`:
+* `--host`: The host used by the server, defaults to "127.0.0.1".
+* `--port`: The port used by the server, defaults to "2003".
+* `--protocol`: What protocol to use to connect to the server (defaults to http).
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
-* `-v, --version`: Display version and exit.
+* `-v`, `--version`: Display version and exit.
+* `-f`, `--logfile`: Write logs to a file (defaults to stderr).
 
 Example for setting PNG width/height::
 
@@ -160,20 +164,22 @@ Unocompare
 
 .. code::
 
-  unocompare [-h] [-v] [--file-type FILE_TYPE] [--host HOST] [--port PORT] [--host-location {auto,remote,local}]
-             oldfile newfile outfile
+  unocompare [-h] [-v] [--file-type FILE_TYPE] [--host HOST] [--port PORT] [--protocol {http, https}]
+             [--host-location {auto,remote,local}] [-f/--logfile logfile] oldfile newfile outfile
 
-* `oldfile`: The path to the older file to be compared with the original one (use - for stdin)
-* `newfile`: The path to the newer file to be compared with the modified one (use - for stdin)
-* `outfile`: The path to the result of the comparison and converted file (use - for stdout)
+* `oldfile`: The path to the older file to be compared (use - for stdin).
+* `newfile`: The path to the newer file to be compared (use - for stdin).
+* `outfile`: The path to the result of the comparison and converted file (use - for stdout).
 * `--file-type`: The file type/extension of the result output file (ex pdf). Required when using stdout
-* `--host`: The host used by the server, defaults to "127.0.0.1"
-* `--port`: The port used by the server, defaults to "2003"
+* `--host`: The host used by the server, defaults to "127.0.0.1".
+* `--port`: The port used by the server, defaults to "2003".
+* `--protocol`: What protocol to use to connect to the server (defaults to http).
 * `--host-location`: The host location determines the handling of files. If you run the client on the
   same machine as the server, it can be set to local, and the files are sent as paths. If they are
   different machines, it is remote and the files are sent as binary data. Default is auto, and it will
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 * `-v, --version`: Display version and exit.
+* `-f`, `--logfile`: Write logs to a file (defaults to stderr).
 
 
 Client/Server installations
