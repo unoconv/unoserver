@@ -1,6 +1,8 @@
 3.5 (unreleased)
 ----------------
 
+- Added Password Conversion Support for Protected Documents.
+
 - Added docstrings to the XML-RPC methods, which should enable the
   introspection functions to be useful.
 

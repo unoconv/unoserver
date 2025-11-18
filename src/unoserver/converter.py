@@ -178,6 +178,7 @@ class UnoConverter:
         filter_options=[],
         update_index=True,
         infiltername=None,
+        password=None,
     ):
         """Converts a file from one type to another
 
@@ -198,9 +199,13 @@ class UnoConverter:
 
         infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
 
+        password: The password for the input file, if it is password protected.
+
         You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
+        if password:
+            input_props += (PropertyValue(Name="Password", Value=password),)
         if infiltername:
             infilters = self.get_filter_names(self.get_available_import_filters())
             if infiltername in infilters:

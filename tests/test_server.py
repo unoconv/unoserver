@@ -1,4 +1,5 @@
 """Unoserver unit tests"""
+
 import os
 
 from unittest import mock

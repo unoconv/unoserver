@@ -14,3 +14,4 @@ Contributors
 * Grunthos, https://github.com/Grunthos
 * Witiko, https://github.com/Witiko
 * Prpl, https://github.com/prpladmin
+* Julian Anthes, https://github.com/uhntiss

@@ -82,6 +82,7 @@ class UnoClient:
         filter_options=[],
         update_index=True,
         infiltername=None,
+        password=None,
     ):
         """Converts a file from one type to another
 
@@ -95,8 +96,14 @@ class UnoClient:
         convert_to: The extension of the desired file type, ie "pdf", "xlsx", etc.
 
         filtername: The name of the export filter to use for conversion. If None, it is auto-detected.
+        
+        filter_options: A list of output filter options as strings, in a "OptionName=Value" format.
 
         update_index: Updates the index before conversion
+        
+        infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
+        
+        password: The password for the input file, if it is password protected.
         """
         if inpath is None and indata is None:
             raise RuntimeError("Nothing to convert.")
@@ -156,6 +163,7 @@ class UnoClient:
                 filter_options,
                 update_index,
                 infiltername,
+                password,
             )
             if result is not None:
                 # We got the file back over xmlrpc:
@@ -348,6 +356,10 @@ def converter_main():
         dest="logfile",
         help="Write logs to a file (defaults to stderr)",
     )
+    parser.add_argument(
+    "--password",
+    help="The password to open the documents, if they are password protected.",
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -390,6 +402,7 @@ def converter_main():
         filter_options=args.filter_options,
         update_index=args.update_index,
         infiltername=args.input_filter,
+        password=args.password,
     )
 
     if args.outfile is None:

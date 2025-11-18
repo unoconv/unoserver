@@ -300,6 +300,7 @@ class UnoServer:
                 filter_options=[],
                 update_index=True,
                 infiltername=None,
+                password=None,
             ):
                 """Convert documents between different formats using LibreOffice.
 
@@ -399,6 +400,7 @@ class UnoServer:
                         filter_options,
                         update_index,
                         infiltername,
+                        password,
                     )
                     try:
                         result = future.result(timeout=self.conversion_timeout)
