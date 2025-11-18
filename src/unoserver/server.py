@@ -206,12 +206,83 @@ class UnoServer:
 
             @server.register_function
             def info():
+                """Get server information and available document format filters.
+
+                This XMLRPC endpoint provides version information and lists all available
+                import and export filters supported by the LibreOffice instance.
+
+                Returns:
+                    dict: Server information containing:
+                        - unoserver (str): The version of unoserver
+                        - api (str): The API version number
+                        - import_filters (list[str]): Names of available import filters
+                          for reading various document formats
+                        - export_filters (list[str]): Names of available export filters
+                          for writing various document formats
+
+                Example:
+                    <?xml version="1.0"?>
+                    <methodResponse>
+                      <params>
+                        <param>
+                          <value>
+                            <struct>
+                              <member>
+                                <name>unoserver</name>
+                                <value><string>2.0.4</string></value>
+                              </member>
+                              <member>
+                                <name>api</name>
+                                <value><string>3</string></value>
+                              </member>
+                              <member>
+                                <name>import_filters</name>
+                                <value>
+                                  <struct>
+                                    <member>
+                                      <name>Text (encoded)</name>
+                                      <value><string>Plain text file with encoding detection</string></value>
+                                    </member>
+                                    <member>
+                                      <name>Microsoft Word 2007/2010/2013/2016</name>
+                                      <value><string>Microsoft Word DOCX format</string></value>
+                                    </member>
+                                  </struct>
+                                </value>
+                              </member>
+                              <member>
+                                <name>export_filters</name>
+                                <value>
+                                  <struct>
+                                    <member>
+                                      <name>PDF - Portable Document Format</name>
+                                      <value><string>Adobe PDF export format</string></value>
+                                    </member>
+                                    <member>
+                                      <name>Microsoft Excel 2007-365</name>
+                                      <value><string>Microsoft Excel XLSX format</string></value>
+                                    </member>
+                                  </struct>
+                                </value>
+                              </member>
+                            </struct>
+                          </value>
+                        </param>
+                      </params>
+                    </methodResponse>
+
+                Note:
+                    The available filters depend on the LibreOffice installation and version.
+                    This endpoint can be used to determine what file formats are supported
+                    before attempting conversions.
+                """
                 import_filters = self.conv.get_filter_names(
                     self.conv.get_available_import_filters()
                 )
                 export_filters = self.conv.get_filter_names(
                     self.conv.get_available_export_filters()
                 )
+
                 return {
                     "unoserver": __version__,
                     "api": API_VERSION,
@@ -231,6 +302,90 @@ class UnoServer:
                 infiltername=None,
                 password=None,
             ):
+                """Convert documents between different formats using LibreOffice.
+
+                This is an XMLRPC server endpoint that wraps the underlying UnoConverter.convert()
+                method. It provides document conversion capabilities with timeout protection,
+                thread safety, and automatic request counting for server lifecycle management.
+
+                Args:
+                    inpath (str | None): File path to the input document on the local filesystem.
+                        Mutually exclusive with indata - exactly one must be provided.
+                    indata (bytes | xmlrpc.client.Binary | None): Binary data of the input file
+                        for remote conversion without requiring a file path. Mutually exclusive
+                        with inpath - exactly one must be provided.
+                    outpath (str | None): File path where the converted output should be saved.
+                        If provided, the converted file is saved to disk and None is returned.
+                        Mutually exclusive with convert_to - exactly one must be provided.
+                    convert_to (str | None): Target file extension/format (e.g., "pdf", "xlsx",
+                        "docx"). If provided, the converted content is returned as bytes.
+                        Mutually exclusive with outpath - exactly one must be provided.
+                    filtername (str | None): Specific LibreOffice export filter name to use.
+                        If None, the filter is auto-detected based on the target format.
+                    filter_options (list): List of filter options as strings in "OptionName=Value"
+                        format. Used to customize the export behavior (e.g., PDF quality settings).
+                    update_index (bool): Whether to update document indexes (e.g., Table of Contents,
+                        cross-references) before conversion. Default is True.
+                    infiltername (str | None): Specific LibreOffice import filter name to use.
+                        If None, the filter is auto-detected based on the input format.
+
+                Returns:
+                    bytes | None: Returns converted file content as bytes if convert_to is specified,
+                        or None if outpath is specified (file saved to disk).
+
+                Raises:
+                    TimeoutError: If conversion exceeds the configured conversion_timeout.
+                        When this occurs, the LibreOffice process is terminated and the server exits.
+                    ValueError: If required parameter combinations are not provided (either
+                        inpath or indata must be specified, and either outpath or convert_to).
+
+                Examples:
+                    Convert file to PDF and save to disk:
+                        <?xml version="1.0"?>
+                        <methodCall>
+                          <methodName>convert</methodName>
+                          <params>
+                            <param><value><string>/path/to/doc.docx</string></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>/path/to/output.pdf</string></value></param>
+                          </params>
+                        </methodCall>
+
+                    Convert binary data and return PDF bytes:
+                        <?xml version="1.0"?>
+                        <methodCall>
+                          <methodName>convert</methodName>
+                          <params>
+                            <param><value><nil/></value></param>
+                            <param><value><base64>UEsDBBQAAAAIAAgA...</base64></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>pdf</string></value></param>
+                          </params>
+                        </methodCall>
+
+                    Convert with specific filter options:
+                        <?xml version="1.0"?>
+                        <methodCall>
+                          <methodName>convert</methodName>
+                          <params>
+                            <param><value><string>doc.docx</string></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>out.pdf</string></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><nil/></value></param>
+                            <param>
+                              <value>
+                                <array>
+                                  <data>
+                                    <value><string>Quality=90</string></value>
+                                    <value><string>CompressImages=true</string></value>
+                                  </data>
+                                </array>
+                              </value>
+                            </param>
+                          </params>
+                        </methodCall>
+                """
                 if indata is not None:
                     indata = indata.data
 
@@ -269,6 +424,69 @@ class UnoServer:
                 outpath=None,
                 filetype=None,
             ):
+                """Compare two documents and generate a comparison result.
+
+                This XMLRPC endpoint wraps the underlying UnoComparer.compare() method
+                to provide document comparison capabilities with timeout protection and
+                thread safety. It can compare documents by file path or binary data.
+
+                Args:
+                    oldpath (str | None): File path to the original/old document on the
+                        local filesystem. Mutually exclusive with olddata - exactly one
+                        must be provided for the old document.
+                    olddata (bytes | xmlrpc.client.Binary | None): Binary data of the
+                        original/old document for remote comparison. Mutually exclusive
+                        with oldpath - exactly one must be provided for the old document.
+                    newpath (str | None): File path to the new/revised document on the
+                        local filesystem. Mutually exclusive with newdata - exactly one
+                        must be provided for the new document.
+                    newdata (bytes | xmlrpc.client.Binary | None): Binary data of the
+                        new/revised document for remote comparison. Mutually exclusive
+                        with newpath - exactly one must be provided for the new document.
+                    outpath (str | None): File path where the comparison result should be
+                        saved. If None, the comparison result is returned as binary data.
+                    filetype (str | None): Specific file format for the comparison output
+                        (e.g., "odt", "docx", "pdf"). If None, format is auto-detected
+                        or defaults based on the output path extension.
+
+                Returns:
+                    bytes | None: Returns comparison result as bytes if outpath is None,
+                        or None if outpath is specified (result saved to disk).
+
+                Raises:
+                    TimeoutError: If comparison exceeds the configured conversion_timeout.
+                        When this occurs, the LibreOffice process is terminated and the server exits.
+                    ValueError: If required parameter combinations are not provided (must
+                        specify either oldpath or olddata, and either newpath or newdata).
+
+                Examples:
+                    Compare files and save result to disk:
+                        <?xml version="1.0"?>
+                        <methodCall>
+                          <methodName>compare</methodName>
+                          <params>
+                            <param><value><string>/path/to/v1.docx</string></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>/path/to/v2.docx</string></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>/path/to/comparison.odt</string></value></param>
+                          </params>
+                        </methodCall>
+
+                    Compare binary data and return result:
+                        <?xml version="1.0"?>
+                        <methodCall>
+                          <methodName>compare</methodName>
+                          <params>
+                            <param><value><nil/></value></param>
+                            <param><value><base64>UEsDBBQAAAAIAAgA...</base64></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><base64>UEsDBBQAAAAIAAgA...</base64></value></param>
+                            <param><value><nil/></value></param>
+                            <param><value><string>odt</string></value></param>
+                          </params>
+                        </methodCall>
+                """
                 if olddata is not None:
                     olddata = olddata.data
                 if newdata is not None:

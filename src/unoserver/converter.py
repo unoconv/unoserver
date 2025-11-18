@@ -272,13 +272,16 @@ class UnoConverter:
                     export_url = uno.systemPathToFileUrl(os.path.abspath(output_path))
 
                     # Figure out the output type:
-                    export_type = self.type_service.queryTypeByURL(export_url)
+                    base, extension = os.path.splitext(export_url)
+                    if convert_to:
+                        # We have a convert_to, which may not be the same type as
+                        # the file extension type (see #181)
+                        type_url = f"{base}.{convert_to}"
+                    else:
+                        type_url = export_url
+                    export_type = self.type_service.queryTypeByURL(type_url)
 
                     if not export_type:
-                        if convert_to:
-                            extension = convert_to
-                        else:
-                            extension = os.path.splitext(output_path)[-1]
                         raise RuntimeError(
                             f"Unknown export file type, unknown extension '{extension}'"
                         )
