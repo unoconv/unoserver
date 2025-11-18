@@ -1,4 +1,4 @@
-3.5 (unreleased)
+3.5 (2025-11-18)
 ----------------
 
 - Added Password Conversion Support for Protected Documents.
