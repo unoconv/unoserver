@@ -187,8 +187,8 @@ class UnoComparer:
             old_stream = self.service.createInstanceWithContext(
                 "com.sun.star.io.SequenceInputStream", self.context
             )
-            old_stream.initialize((uno.ByteSequence(newdata),))
-            old_props += (PropertyValue(Name="InputStream", Value=new_stream),)
+            old_stream.initialize((uno.ByteSequence(olddata),))
+            old_props += (PropertyValue(Name="InputStream", Value=old_stream),)
             old_props += (PropertyValue(Name="URL", Value="private:stream"),)
             old_type = self.type_service.queryTypeByDescriptor(old_props, False)[0]
 
@@ -260,7 +260,6 @@ class UnoComparer:
                     PropertyValue(Name="OutputStream", Value=output_stream),
                 )
             new_document.storeToURL(export_path, output_props)
-            new_document.dispose()
 
         finally:
             new_document.close(True)

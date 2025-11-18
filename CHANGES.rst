@@ -1,7 +1,7 @@
 3.6 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- A bug (and a cleanup) fixed in unocompare after code review.
 
 
 3.5 (2025-11-18)
