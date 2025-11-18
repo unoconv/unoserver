@@ -1,7 +1,8 @@
 3.5 (unreleased)
 ----------------
 
-- Nothing changed yet.
+- Added docstrings to the XML-RPC methods, which should enable the
+  introspection functions to be useful. Closed #193
 
 
 3.4 (2025-09-26)
