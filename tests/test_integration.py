@@ -180,8 +180,6 @@ def test_invalid_explicit_export_filter_prints_available_filters(
             client.converter_main()
         except RuntimeError:
             errstr = caplog.text
-            print(errstr)
-            print("=" * 30)
             assert "Office Open XML Text" in errstr
             assert "writer8" in errstr
             assert "writer_pdf_Export" in errstr
