@@ -3,6 +3,8 @@
 
 - A bug (and a cleanup) fixed in unocompare after code review.
 
+- Added a unoping command to check if the server is up and running.
+
 
 3.5 (2025-11-18)
 ----------------

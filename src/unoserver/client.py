@@ -268,6 +268,16 @@ class UnoClient:
             else:
                 logger.info(f"Saved to {outpath}.")
 
+    def server_info(self):
+        with ServerProxy(
+            f"{self.protocol}://{self.server}:{self.port}", allow_none=True
+        ) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
+            info = self._connect(proxy, retries=1)
+            print(f"Unoserver {info['unoserver']}")
+            print(f"API version {info['api']}")
+
 
 def converter_main():
     parser = argparse.ArgumentParser("unoconvert")
@@ -561,3 +571,69 @@ def comparer_main():
 
     if args.outfile is None:
         sys.stdout.buffer.write(result)
+
+
+def ping_main():
+    parser = argparse.ArgumentParser("unoping")
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        help="Display version and exit.",
+        version=f"{parser.prog} {__version__}",
+    )
+    parser.add_argument(
+        "--host", default="127.0.0.1", help="The host the server run on."
+    )
+    parser.add_argument("--port", default="2003", help="The port used by the server.")
+    parser.add_argument(
+        "--protocol",
+        choices=["http", "https"],
+        default="http",
+        help="What protocol to use to connect to the server (defaults to http).",
+    )
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument(
+        "--verbose",
+        action="store_true",
+        dest="verbose",
+        help="Increase informational output to logs.",
+    )
+    group.add_argument(
+        "--quiet",
+        action="store_true",
+        dest="quiet",
+        help="Decrease informational output to logs.",
+    )
+    parser.add_argument(
+        "-f",
+        "--logfile",
+        dest="logfile",
+        help="Write logs to a file (defaults to stderr).",
+    )
+    args = parser.parse_args()
+
+    if args.verbose:
+        log_args = {"level": logging.DEBUG}
+    elif args.quiet:
+        log_args = {"level": logging.CRITICAL}
+    else:
+        log_args = {"level": logging.INFO}
+
+    if args.logfile:
+        log_args["filename"] = args.logfile
+
+        def new_excepthook(*exc):
+            logger.exception("Critical error", exc_info=exc)
+
+        sys.excepthook = new_excepthook
+
+    logging.basicConfig(**log_args)
+
+    client = UnoClient(args.host, args.port, "auto", args.protocol)
+    try:
+        client.server_info()
+        return 0
+    except ConnectionError:
+        logger.error("Could not connect to server")
+        return -1

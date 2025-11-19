@@ -23,7 +23,8 @@ convert somewhere between two and four times as many documents in the same time 
 Unoserver contains three commands to help you do this, `unoserver` which starts a listener on the
 specified IP interface and port, and `unoconverter` which will connect to a listener and ask it
 to convert a document, as well as `unocompare` which will connect to a listener and ask it
-to compare two documents and convert the result document.
+to compare two documents and convert the result document. There is also the `unoping` command
+that checks if a server is up and running, and prints its versions.
 
 
 Installation
@@ -85,10 +86,10 @@ example `/Applications/LibreOffice.app/Contents/python` or
 Usage
 -----
 
-Installing unoserver installs three scripts, `unoserver`, `unoconverter` and `unocompare`.
-The server can also be run as a module with `python3 -m unoserver.server`, with the same
-arguments as the main script, which can be useful as it must be run with the LibreOffice
-provided Python.
+Installing unoserver installs four scripts, `unoserver`, `unoconverter`, `unocompare`
+and `unoping`. The server can also be run as a module with `python3 -m unoserver.server`,
+with the same arguments as the main script, which can be useful as it must be run with
+the LibreOffice provided Python.
 
 
 Unoserver
@@ -143,6 +144,8 @@ Unoconvert
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 * `-v`, `--version`: Display version and exit.
 * `-f`, `--logfile`: Write logs to a file (defaults to stderr).
+* `--verbose`: Increase informational output to logs.
+* `--quiet`: Decrease informational output to logs.
 
 Example for setting PNG width/height::
 
@@ -178,6 +181,29 @@ Unocompare
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 * `-v, --version`: Display version and exit.
 * `-f`, `--logfile`: Write logs to a file (defaults to stderr).
+* `--verbose`: Increase informational output to logs.
+* `--quiet`: Decrease informational output to logs.
+
+
+Unoping
+~~~~~~~
+
+.. code::
+
+  unoping [-h] [-v] [--host HOST] [--port PORT] [--protocol {http,https}]
+  [--verbose | --quiet] [-f LOGFILE]
+
+* `--host`: The host used by the server, defaults to "127.0.0.1".
+* `--port`: The port used by the server, defaults to "2003".
+* `--protocol`: What protocol to use to connect to the server (defaults to http).
+* `--host-location`: The host location determines the handling of files. If you run the client on the
+  same machine as the server, it can be set to local, and the files are sent as paths. If they are
+  different machines, it is remote and the files are sent as binary data. Default is auto, and it will
+  send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
+* `-v`, `--version`: Display version and exit.
+* `-f`, `--logfile`: Write logs to a file (defaults to stderr).
+* `--verbose`: Increase informational output to logs.
+* `--quiet`: Decrease informational output to logs.
 
 
 Client/Server installations
