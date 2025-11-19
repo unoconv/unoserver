@@ -3,6 +3,7 @@ import logging
 import os
 import sys
 import time
+import warnings
 
 from importlib import metadata
 from xmlrpc.client import ServerProxy
@@ -293,12 +294,21 @@ def converter_main():
     )
     parser.add_argument(
         "--output-filter",
-        "--filter",
         default=None,
         help="The export filter to use when converting. It is selected automatically if not specified.",
     )
     parser.add_argument(
+        "--filter",
+        default=None,
+        help="The --filter option is deprecated, please use --output-filter.",
+    )
+    parser.add_argument(
         "--filter-options",
+        default=[],
+        action="append",
+        help="Deprecated, please use --filter-option instead.",
+    )
+    parser.add_argument(
         "--filter-option",
         default=[],
         action="append",
@@ -393,13 +403,38 @@ def converter_main():
     else:
         indata = None
 
+    filter_options = args.filter_option
+    if args.filter_options:
+        filter_options.extend(args.filter_options)
+        # Standard deprecation warning, for those looking for that:
+        warnings.warn(
+            DeprecationWarning(
+                "--filter-options is deprecated, please use --filter-option"
+            )
+        )
+        # And also to the logs, for those who read logs:
+        logger.warning("--filter-options is deprecated, please use --filter-option")
+
+    if args.output_filter:
+        output_filter = args.output_filter
+    elif args.filter:
+        output_filter = args.filter
+        # Standard deprecation warning, for those looking for that:
+        warnings.warn(
+            DeprecationWarning("--filter is deprecated, please use --output-filter")
+        )
+        # And also to the logs, for those who read logs:
+        logger.warning("--filter is deprecated, please use --output-filter")
+    else:
+        output_filter = None
+
     result = client.convert(
         inpath=args.infile,
         indata=indata,
         outpath=args.outfile,
         convert_to=args.convert_to,
-        filtername=args.output_filter,
-        filter_options=args.filter_options,
+        filtername=output_filter,
+        filter_options=filter_options,
         update_index=args.update_index,
         infiltername=args.input_filter,
         password=args.password,
