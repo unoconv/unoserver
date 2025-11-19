@@ -153,7 +153,7 @@ def test_explicit_export_filter(server_fixture, filename):
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
         sys.argv = [
             "unoconverter",
-            "--filter",
+            "--output-filter",
             "writer_pdf_Export",
             infile,
             outfile.name,
@@ -175,7 +175,13 @@ def test_invalid_explicit_export_filter_prints_available_filters(
 
     # We use an extension that's not .pdf to verify that the converter does not auto-detect filter based on extension
     with tempfile.NamedTemporaryFile(suffix=".csv") as outfile:
-        sys.argv = ["unoconverter", "--filter", "asdasdasd", infile, outfile.name]
+        sys.argv = [
+            "unoconverter",
+            "--output-filter",
+            "asdasdasd",
+            infile,
+            outfile.name,
+        ]
         try:
             client.converter_main()
         except RuntimeError:
@@ -245,6 +251,19 @@ def test_convert_not_local():
         process.wait(30)
         # And verify that it was killed
         assert process.returncode == 0
+
+
+def test_ping(server_fixture):
+    sys.argv = ["unoping"]
+    res = client.ping_main()
+    assert res == 0
+
+
+# This doesn't work
+def test_ping_fail():
+    sys.argv = ["unoping", "--port", "0"]
+    res = client.ping_main()
+    assert res == -1
 
 
 # This currently does not work on Ubuntu 20.04.

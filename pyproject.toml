@@ -41,6 +41,7 @@ devenv = [
 unoserver = "unoserver.server:main"
 unoconvert = "unoserver.client:converter_main"
 unocompare = "unoserver.client:comparer_main"
+unoping = "unoserver.client:ping_main"
 
 [tool.setuptools]
 packages = ["unoserver"]
