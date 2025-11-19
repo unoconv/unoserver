@@ -268,6 +268,16 @@ class UnoClient:
             else:
                 logger.info(f"Saved to {outpath}.")
 
+    def server_info(self):
+        with ServerProxy(
+            f"{self.protocol}://{self.server}:{self.port}", allow_none=True
+        ) as proxy:
+            logger.info("Connecting.")
+            logger.debug(f"Host: {self.server} Port: {self.port}")
+            info = self._connect(proxy, retries=1)
+            print(f"Unoserver {info['unoserver']}")
+            print(f"API version {info['api']}")
+
 
 def converter_main():
     parser = argparse.ArgumentParser("unoconvert")

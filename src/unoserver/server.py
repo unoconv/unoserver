@@ -617,6 +617,11 @@ def main():
         dest="logfile",
         help="Write logs to a file (defaults to stderr)",
     )
+    parser.add_argument(
+        "--server-info",
+        help="Connects to a running server and shows server information, then exits.",
+        action="store_true",
+    )
     args = parser.parse_args()
 
     if args.verbose:
@@ -627,6 +632,18 @@ def main():
         log_args = {"level": logging.INFO}
 
     logging.basicConfig(**log_args)
+
+    if args.server_info:
+        # Don't start a server, but check if there already is one
+        from unoserver.client import UnoClient
+
+        client = UnoClient(server=args.interface, port=args.port)
+        try:
+            client.server_info()
+            return 0
+        except ConnectionError:
+            logger.error("Could not connect to server")
+            return -1
 
     if args.daemon or args.logfile:
         cmd = sys.argv
