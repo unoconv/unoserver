@@ -5,6 +5,8 @@
 
 - Added a unoping command to check if the server is up and running.
 
+- Added deprecation warnings to deprecated command line options.
+
 
 3.5 (2025-11-18)
 ----------------
