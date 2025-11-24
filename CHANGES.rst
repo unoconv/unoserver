@@ -1,4 +1,4 @@
-3.6 (unreleased)
+3.6 (2025-11-24)
 ----------------
 
 - A bug (and a cleanup) fixed in unocompare after code review.
