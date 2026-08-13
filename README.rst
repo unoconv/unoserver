@@ -100,7 +100,7 @@ Unoserver
   unoserver [-h] [-v] [--interface INTERFACE] [--uno-interface UNO_INTERFACE] [--port PORT] [--uno-port UNO_PORT]
             [--daemon] [--executable EXECUTABLE] [--user-installation USER_INSTALLATION]
             [-p/--libreoffice-pid-file LIBREOFFICE_PID_FILE] [--conversion-timeout CONVERSION_TIMEOUT]
-            [--stop-after STOP_AFTER] [--temp-dir TEMP_DIR] [--verbose] [--quiet] [-f/--logfile logfile]
+            [--stop-after STOP_AFTER] [--temp-dir TEMP_DIR] [--verbose/-V] [--quiet/-Q] [-f/--logfile logfile]
 
 * `-v, --version`: Display version and exit.
 * `--interface`: The interface used by the XMLRPC server, defaults to "127.0.0.1"
@@ -115,8 +115,8 @@ Unoserver
 * `--conversion-timeout`: Terminate Libreoffice and exit if a conversion does not complete in the given time (in seconds).
 * `--stop-after`: Terminate Libreoffice and exit after the given number of requests.
 * `--temp-dir`: The directory to use for temporary files. Useful for avoiding permission issues with system temp directories (e.g., C:\Windows\Temp on Windows). If not specified, uses system default temp directory.
-* `--verbose`: Add debug information as output
-* `--quiet`: Only output errors and warnings
+* `--verbose`, `-V`: Add debug information as output
+* `--quiet`, `-Q`: Only output errors and warnings
 * `-f`, `--logfile`: Write logs to a file (defaults to stderr)
 
 
@@ -125,17 +125,17 @@ Unoconvert
 
 .. code::
 
-  unoconvert [-h] [-v] [--convert-to CONVERT_TO] [--input-filter INPUT_FILTER] [--output-filter OUTPUT_FILTER]
+  unoconvert [-h] [-v] [-c/--convert-to CONVERT_TO] [--input-filter INPUT_FILTER] [--output-filter OUTPUT_FILTER]
              [--filter-option FILTER_OPTIONS] [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
-             [--host-location {auto,remote,local}] [--protocol {http, https}] [-f/--logfile logfile] infile outfile
+             [--host-location {auto,remote,local}] [--protocol {http, https}] [-f/--logfile logfile] [-p/--password] [--verbose/-V] [--quiet/-Q] infile outfile
 
 * `infile`: The path to the file to be converted (use - for stdin).
 * `outfile`: The path to the converted file (use - for stdout).
-* `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout.
+* `-c`, `--convert-to`: The file type/extension of the output file (ex pdf). Required when using stdout.
 * `--input-filter`: The LibreOffice input filter to use (ex 'writer8'), if autodetect fails.
 * `--output-filter`: The export filter to use when converting. It is selected automatically if not specified.
 * `--filter-option`: Pass an option for the export filter, in name=value format, or for positional parameters, a comma separated list. Use true/false for boolean values. Can be repeated for multiple options.
-* `--password`:
+* `-p`, `--password`: The password to open the documents, if they are password protected.
 * `--host`: The host used by the server, defaults to "127.0.0.1".
 * `--port`: The port used by the server, defaults to "2003".
 * `--protocol`: What protocol to use to connect to the server (defaults to http).
@@ -145,8 +145,8 @@ Unoconvert
   send the file as a path if the host is 127.0.0.1 or localhost, and binary data for other hosts.
 * `-v`, `--version`: Display version and exit.
 * `-f`, `--logfile`: Write logs to a file (defaults to stderr).
-* `--verbose`: Increase informational output to logs.
-* `--quiet`: Decrease informational output to logs.
+* `--verbose`, `-V`: Increase informational output to logs.
+* `--quiet`, `-Q`: Decrease informational output to logs.
 
 Example for setting PNG width/height::
 
