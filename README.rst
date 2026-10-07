@@ -126,8 +126,9 @@ Unoconvert
 .. code::
 
   unoconvert [-h] [-v] [--convert-to CONVERT_TO] [--input-filter INPUT_FILTER] [--output-filter OUTPUT_FILTER]
-             [--filter-option FILTER_OPTIONS] [--update-index] [--dont-update-index] [--host HOST] [--port PORT]
-             [--host-location {auto,remote,local}] [--protocol {http, https}] [-f/--logfile logfile] infile outfile
+             [--filter-option FILTER_OPTIONS] [--update-index] [--dont-update-index] [--recovery]
+             [--host HOST] [--port PORT] [--host-location {auto,remote,local}] [--protocol {http, https}]
+             [-f/--logfile logfile] infile outfile
 
 * `infile`: The path to the file to be converted (use - for stdin).
 * `outfile`: The path to the converted file (use - for stdout).
@@ -136,6 +137,7 @@ Unoconvert
 * `--output-filter`: The export filter to use when converting. It is selected automatically if not specified.
 * `--filter-option`: Pass an option for the export filter, in name=value format, or for positional parameters, a comma separated list. Use true/false for boolean values. Can be repeated for multiple options.
 * `--password`:
+* `--recovery`: Try recovery corrupted document before conversion.
 * `--host`: The host used by the server, defaults to "127.0.0.1".
 * `--port`: The port used by the server, defaults to "2003".
 * `--protocol`: What protocol to use to connect to the server (defaults to http).

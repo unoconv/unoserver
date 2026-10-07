@@ -305,6 +305,7 @@ class UnoServer:
                 update_index=True,
                 infiltername=None,
                 password=None,
+                recovery=False,
             ):
                 """Convert documents between different formats using LibreOffice.
 
@@ -332,6 +333,7 @@ class UnoServer:
                         cross-references) before conversion. Default is True.
                     infiltername (str | None): Specific LibreOffice import filter name to use.
                         If None, the filter is auto-detected based on the input format.
+                    recovery (bool): Whether try to recovery document before conversion. Default is False.
 
                 Returns:
                     bytes | None: Returns converted file content as bytes if convert_to is specified,
@@ -405,6 +407,7 @@ class UnoServer:
                         update_index,
                         infiltername,
                         password,
+                        recovery,
                     )
                     try:
                         result = future.result(timeout=self.conversion_timeout)

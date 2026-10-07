@@ -84,6 +84,7 @@ class UnoClient:
         update_index=True,
         infiltername=None,
         password=None,
+        recovery=False,
     ):
         """Converts a file from one type to another
 
@@ -105,6 +106,8 @@ class UnoClient:
         infiltername: The name of the input filter, ie "writer8", "PowerPoint 3", etc.
 
         password: The password for the input file, if it is password protected.
+
+        recovery: Recovery document before conversion.
         """
         if inpath is None and indata is None:
             raise RuntimeError("Nothing to convert.")
@@ -165,6 +168,7 @@ class UnoClient:
                 update_index,
                 infiltername,
                 password,
+                recovery,
             )
             if result is not None:
                 # We got the file back over xmlrpc:
@@ -381,6 +385,13 @@ def converter_main():
         "--password",
         help="The password to open the documents, if they are password protected.",
     )
+    parser.add_argument(
+        "--recovery",
+        action="store_true",
+        dest="recovery",
+        help="Recovery document before conversion.",
+    )
+    parser.set_defaults(recovery=False)
     args = parser.parse_args()
 
     if args.verbose:
@@ -449,6 +460,7 @@ def converter_main():
         update_index=args.update_index,
         infiltername=args.input_filter,
         password=args.password,
+        recovery=args.recovery,
     )
 
     if args.outfile is None:

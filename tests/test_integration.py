@@ -217,6 +217,22 @@ def test_update_index(server_fixture):
                 assert len(matches) == 1
 
 
+@pytest.mark.skipif(sys.version_info < (3, 12), reason="Use this condition for detect old version LibreOffice")
+def test_recovery(server_fixture):
+    print("Fixture")
+    print(server_fixture)
+    infile = os.path.join(TEST_DOCS, "corrupted.docx")
+
+    with tempfile.NamedTemporaryFile(suffix=".pdf") as outfile:
+        # Let Libreoffice recovery input file and then convert it.
+        sys.argv = ["unoconverter", "--recovery", infile, outfile.name]
+        client.converter_main()
+
+        with open(outfile.name, "rb") as testfile:
+                    start = testfile.readline()
+                    assert start.startswith(b"%PDF-1.")
+
+
 def test_convert_not_local():
     hostname = socket.gethostname()
     cmd = ["unoserver", "--uno-port=2104", "--port=2105", f"--interface={hostname}"]

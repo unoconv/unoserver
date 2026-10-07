@@ -210,6 +210,7 @@ class UnoConverter:
         update_index=True,
         infiltername=None,
         password=None,
+        recovery=False,
     ):
         """Converts a file from one type to another
 
@@ -232,11 +233,15 @@ class UnoConverter:
 
         password: The password for the input file, if it is password protected.
 
+        recovery: Recovery document before conversion.
+
         You must specify the inpath or the indata, and you must specify and outpath or a convert_to.
         """
         input_props = (PropertyValue(Name="ReadOnly", Value=True),)
         if password:
             input_props += (PropertyValue(Name="Password", Value=password),)
+        if recovery:
+            input_props +=(PropertyValue(Name="RepairPackage", Value=True),)
         if infiltername:
             infilters = self.get_filter_names(self.get_available_import_filters())
             if infiltername in infilters:
