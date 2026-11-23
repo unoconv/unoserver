@@ -628,12 +628,15 @@ def main():
     )
     args = parser.parse_args()
 
+    log_args = {
+        "format": '%(asctime)s %(levelname)s: %(message)s',
+        "datefmt": '%Y-%m-%d %H:%M:%S',
+        "level": logging.INFO
+    }
     if args.verbose:
-        log_args = {"level": logging.DEBUG}
+        log_args["level"] = logging.DEBUG
     elif args.quiet:
-        log_args = {"level": logging.CRITICAL}
-    else:
-        log_args = {"level": logging.INFO}
+        log_args["level"] = logging.CRITICAL
 
     logging.basicConfig(**log_args)
 
